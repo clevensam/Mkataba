@@ -15,6 +15,8 @@ import AdminReviews from "./pages/AdminReviews";
 import ManageTemplatesPage from "./pages/ManageTemplatesPage";
 import TemplateEditorPage from "./pages/TemplateEditorPage";
 import SharedContractPage from "./pages/SharedContractPage";
+import MyContractsPage from "./pages/MyContractsPage";
+import ProfilePage from "./pages/ProfilePage";
 import Navbar from "./components/layout/Navbar";
 import Header from "./components/layout/Header";
 import Footer from "./components/layout/Footer";
@@ -72,6 +74,14 @@ export default function App() {
                 <Route 
                   path="/dashboard" 
                   element={user ? <Dashboard /> : <Navigate to="/login" replace />} 
+                />
+                <Route 
+                  path="/my-contracts" 
+                  element={user ? <MyContractsPage /> : <Navigate to="/login" replace />} 
+                />
+                <Route 
+                  path="/profile" 
+                  element={user ? <ProfilePage /> : <Navigate to="/login" replace />} 
                 />
                 <Route 
                   path="/contracts/new/:templateId" 

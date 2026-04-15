@@ -50,7 +50,9 @@ export default function Navbar() {
 
   const navItems = [
     { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
+    { name: "My Contracts", path: "/my-contracts", icon: FileText },
     { name: "Templates", path: "/templates", icon: Layers },
+    { name: "Profile", path: "/profile", icon: User },
     ...(role === "ADMIN" ? [{ name: "Admin", path: "/admin", icon: ShieldCheck }] : []),
   ];
 
