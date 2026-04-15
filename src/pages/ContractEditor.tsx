@@ -34,7 +34,7 @@ export default function ContractEditor() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [user, setUser] = useState<any>(null);
-  const [mode, setMode] = useState<"edit" | "preview">("edit");
+  const [currentStep, setCurrentStep] = useState(1); // 1: Edit, 2: Preview, 3: Finalize
   const [showSignature, setShowSignature] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [sharingEnabled, setSharingEnabled] = useState(false);
@@ -44,6 +44,12 @@ export default function ContractEditor() {
   const [isPrintingBlank, setIsPrintingBlank] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  const steps = [
+    { id: 1, name: "Edit Details", icon: Edit3 },
+    { id: 2, name: "Review Preview", icon: Eye },
+    { id: 3, name: "Sign & Finalize", icon: PenTool },
+  ];
+
   const handleDownload = async () => {
     if (!template) return;
     try {
@@ -51,21 +57,6 @@ export default function ContractEditor() {
     } catch (error) {
       console.error("Error generating PDF:", error);
     }
-  };
-
-  const handleDownloadBlank = async () => {
-    if (!template) return;
-    setIsPrintingBlank(true);
-    // Small delay to ensure React renders the blank state
-    setTimeout(async () => {
-      try {
-        await generateContractPDF("contract-document", `${template.title.replace(/\s+/g, '_')}_Blank.pdf`);
-      } catch (error) {
-        console.error("Error generating blank PDF:", error);
-      } finally {
-        setIsPrintingBlank(false);
-      }
-    }, 100);
   };
 
   useEffect(() => {
@@ -184,7 +175,7 @@ export default function ContractEditor() {
               );
             }
             
-            if (mode === "preview") {
+            if (currentStep > 1) {
               return (
                 <span key={i} className="border-b border-black font-bold px-1 min-w-[50px] inline-block">
                   {filledData[part] || "__________"}
@@ -296,40 +287,19 @@ export default function ContractEditor() {
                 }`}>
                   {contract?.status || "Draft"}
                 </span>
-                <span>•</span>
-                <span>{completionPercent}% Complete</span>
               </div>
             </div>
           </div>
 
+          {/* Stepper (Removed from header) */}
           <div className="flex items-center gap-3">
-            <div className="flex bg-slate-100 p-1 rounded-xl mr-2">
-              <button
-                onClick={() => setMode("edit")}
-                className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-semibold transition-all ${
-                  mode === "edit" ? "bg-white text-brand-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
-                }`}
-              >
-                <Edit3 className="w-4 h-4" /> Edit
-              </button>
-              <button
-                onClick={() => setMode("preview")}
-                className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-semibold transition-all ${
-                  mode === "preview" ? "bg-white text-brand-600 shadow-sm" : "text-slate-500 hover:text-slate-700"
-                }`}
-              >
-                <Eye className="w-4 h-4" /> Preview
-              </button>
-            </div>
-            
             <button
               onClick={() => setShowShareModal(true)}
               disabled={!contract?.id}
-              className="btn-secondary flex items-center gap-2"
+              className="p-2 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-xl transition-all"
               title={!contract?.id ? "Save draft first to share" : "Share contract"}
             >
-              <Share2 className="w-4 h-4" />
-              Share
+              <Share2 className="w-5 h-5" />
             </button>
 
             <button
@@ -338,94 +308,97 @@ export default function ContractEditor() {
               className="btn-secondary flex items-center gap-2"
             >
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              Save Draft
-            </button>
-
-            <button
-              onClick={handleDownloadBlank}
-              className="btn-secondary flex items-center gap-2"
-            >
-              <FileText className="w-4 h-4" />
-              Download Blank
-            </button>
-
-            <button
-              onClick={handleDownload}
-              className="btn-secondary flex items-center gap-2"
-            >
-              <Download className="w-4 h-4" />
-              Download PDF
-            </button>
-            
-            <button
-              onClick={() => setShowSignature(true)}
-              disabled={completionPercent < 100 || contract?.status === "signed"}
-              className="btn-primary flex items-center gap-2"
-            >
-              <PenTool className="w-4 h-4" />
-              Sign Contract
+              <span className="hidden sm:inline">Save Draft</span>
             </button>
           </div>
         </div>
       </div>
 
-      <div className="w-full px-6 mt-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Main Document Area */}
-        <div className="lg:col-span-8">
-          <motion.div 
-            layout
-            ref={containerRef}
-            id="contract-document"
-            className="bg-white rounded-2xl shadow-xl shadow-slate-200/50 p-12 border border-slate-100 min-h-[1000px] relative overflow-hidden"
-          >
-            {renderContent()}
-          </motion.div>
-        </div>
-
-        {/* Sidebar Info */}
-        <div className="lg:col-span-4 space-y-6">
-          <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
-            <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-brand-600" />
-              Completion Status
-            </h3>
-            <div className="w-full bg-slate-100 h-2 rounded-full mb-4 overflow-hidden">
-              <div 
-                className="bg-brand-600 h-full transition-all duration-500" 
-                style={{ width: `${completionPercent}%` }}
-              />
-            </div>
-            <p className="text-sm text-slate-600 mb-6">
-              {completionPercent === 100 
-                ? "All fields filled! You can now sign the contract." 
-                : "Please fill in all required fields to sign the document."}
-            </p>
-            
-            <div className="space-y-3">
-              {template && JSON.parse(template.fields).map((f: any) => (
-                <div key={f.id} className="flex items-center justify-between text-sm">
-                  <span className="text-slate-600">{f.label}</span>
-                  {filledData[f.id] ? (
-                    <CheckCircle2 className="w-4 h-4 text-teal-500" />
-                  ) : (
-                    <div className="w-4 h-4 rounded-full border-2 border-slate-200" />
-                  )}
+      {/* Stepper Section (New) */}
+      <div className="bg-white border-b border-slate-200 py-3 px-6">
+        <div className="max-w-4xl mx-auto flex items-center justify-center gap-2">
+          {steps.map((step, idx) => (
+            <div key={step.id} className="flex items-center">
+              <button
+                onClick={() => {
+                  if (step.id < currentStep || (step.id === 2 && completionPercent > 0) || (step.id === 3 && completionPercent === 100)) {
+                    setCurrentStep(step.id);
+                  }
+                }}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  currentStep === step.id 
+                    ? "bg-brand-600 text-white shadow-md shadow-brand-100" 
+                    : currentStep > step.id 
+                      ? "text-brand-600 bg-brand-50" 
+                      : "text-slate-400 hover:text-slate-600"
+                }`}
+              >
+                <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[8px] ${
+                  currentStep >= step.id ? "bg-white/20" : "bg-slate-100"
+                }`}>
+                  {currentStep > step.id ? <CheckCircle2 className="w-3 h-3" /> : step.id}
                 </div>
-              ))}
+                {step.name}
+              </button>
+              {idx < steps.length - 1 && (
+                <div className="w-4 md:w-8 h-[1px] bg-slate-200 mx-1" />
+              )}
             </div>
-          </div>
+          ))}
+        </div>
+      </div>
 
-          <div className="bg-brand-50 rounded-2xl p-6 border border-brand-100">
-            <h3 className="font-bold text-brand-900 mb-2 flex items-center gap-2">
-              <AlertCircle className="w-5 h-5" />
-              Need a Review?
-            </h3>
-            <p className="text-sm text-brand-700 mb-4">
-              Once signed, you can submit this contract for a basic lawyer review to ensure everything is in order.
-            </p>
-            <button className="text-brand-600 text-sm font-bold hover:underline flex items-center gap-1">
-              Learn more about reviews <ChevronRight className="w-4 h-4" />
-            </button>
+      <div className="max-w-4xl mx-auto px-6 mt-8 space-y-8">
+        {/* Main Document Area */}
+        <motion.div 
+          layout
+          ref={containerRef}
+          id="contract-document"
+          className="bg-white rounded-2xl shadow-xl shadow-slate-200/50 p-6 md:p-12 border border-slate-100 min-h-[1000px] relative overflow-hidden"
+        >
+          {renderContent()}
+        </motion.div>
+
+        {/* Navigation Buttons */}
+        <div className="flex items-center justify-between bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+          <button
+            onClick={() => setCurrentStep(prev => Math.max(1, prev - 1))}
+            disabled={currentStep === 1}
+            className="btn-secondary flex items-center gap-2 disabled:opacity-0"
+          >
+            <ArrowLeft className="w-4 h-4" /> Previous Step
+          </button>
+
+          <div className="flex items-center gap-3">
+            {currentStep === 3 && (
+              <>
+                <button
+                  onClick={handleDownload}
+                  className="btn-secondary flex items-center gap-2"
+                >
+                  <Download className="w-4 h-4" /> Download PDF
+                </button>
+                <button
+                  onClick={() => setShowSignature(true)}
+                  disabled={completionPercent < 100 || contract?.status === "signed"}
+                  className="btn-primary flex items-center gap-2"
+                >
+                  <PenTool className="w-4 h-4" />
+                  {contract?.status === "signed" ? "Signed" : "Sign Contract"}
+                </button>
+              </>
+            )}
+            
+            {currentStep < 3 && (
+              <button
+                onClick={() => setCurrentStep(prev => Math.min(3, prev + 1))}
+                disabled={currentStep === 1 && completionPercent === 0}
+                className="btn-primary flex items-center gap-2 px-8"
+              >
+                {currentStep === 1 ? "Preview Document" : "Proceed to Signing"}
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            )}
           </div>
         </div>
       </div>
