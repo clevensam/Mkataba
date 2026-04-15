@@ -7,13 +7,13 @@ export async function generateContractPDF(elementId: string, fileName: string) {
 
   try {
     // Ensure all styles are applied
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     const imgData = await toPng(element, {
       quality: 1.0,
-      pixelRatio: 3,
+      pixelRatio: 2,
       backgroundColor: "#ffffff",
-      skipFonts: false,
+      cacheBust: true,
     });
 
     if (!imgData || imgData === "data:,") {
@@ -34,16 +34,15 @@ export async function generateContractPDF(elementId: string, fileName: string) {
     
     const imgWidth = img.width;
     const imgHeight = img.height;
-    // Account for pixelRatio: 3
-    const ratio = Math.min(pdfWidth / (imgWidth / 3), pdfHeight / (imgHeight / 3));
+    const ratio = Math.min(pdfWidth / (imgWidth / 2), pdfHeight / (imgHeight / 2));
     
-    const finalWidth = (imgWidth / 3) * ratio;
-    const finalHeight = (imgHeight / 3) * ratio;
+    const finalWidth = (imgWidth / 2) * ratio;
+    const finalHeight = (imgHeight / 2) * ratio;
     
     const x = (pdfWidth - finalWidth) / 2;
     const y = 10;
 
-    pdf.addImage(imgData, "PNG", x, y, finalWidth, finalHeight, undefined, 'FAST');
+    pdf.addImage(imgData, "PNG", x, y, finalWidth, finalHeight);
     pdf.save(fileName);
   } catch (error) {
     console.error("Error generating PDF:", error);

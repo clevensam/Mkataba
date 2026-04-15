@@ -10,7 +10,7 @@ import { toPng } from "html-to-image";
 export async function downloadContractPDF(title: string, htmlContent: string, filledData?: Record<string, string>) {
   // Create a temporary container to render the HTML
   const container = document.createElement("div");
-  // Ensure the container is in the DOM but not visible to the user
+  // Ensure the container is in the DOM but off-screen
   container.style.width = "800px";
   container.style.padding = "60px";
   container.style.fontFamily = "'Inter', 'Segoe UI', Roboto, sans-serif";
@@ -18,10 +18,9 @@ export async function downloadContractPDF(title: string, htmlContent: string, fi
   container.style.color = "#000";
   container.style.backgroundColor = "#fff";
   container.style.position = "fixed";
-  container.style.left = "0";
+  container.style.left = "-9999px";
   container.style.top = "0";
   container.style.zIndex = "-1000";
-  container.style.visibility = "hidden";
   
   // Replace placeholders
   let processedHtml = htmlContent;
@@ -60,14 +59,14 @@ export async function downloadContractPDF(title: string, htmlContent: string, fi
   document.body.appendChild(container);
 
   try {
-    // Give more time for rendering
-    await new Promise(resolve => setTimeout(resolve, 800));
+    // Wait for rendering and fonts
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     const imgData = await toPng(container, {
       quality: 1.0,
-      pixelRatio: 3, // Higher quality
+      pixelRatio: 2,
       backgroundColor: "#ffffff",
-      skipFonts: false,
+      cacheBust: true,
     });
 
     if (!imgData || imgData === "data:,") {
@@ -78,6 +77,7 @@ export async function downloadContractPDF(title: string, htmlContent: string, fi
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight = pdf.internal.pageSize.getHeight();
     
+    // Create a temporary image to get dimensions
     const img = new Image();
     img.src = imgData;
     await new Promise((resolve, reject) => {
@@ -87,19 +87,19 @@ export async function downloadContractPDF(title: string, htmlContent: string, fi
 
     const imgWidth = img.width;
     const imgHeight = img.height;
-    const ratio = Math.min(pdfWidth / (imgWidth / 3), pdfHeight / (imgHeight / 3));
+    const ratio = Math.min(pdfWidth / (imgWidth / 2), pdfHeight / (imgHeight / 2));
     
-    const finalWidth = (imgWidth / 3) * ratio;
-    const finalHeight = (imgHeight / 3) * ratio;
+    const finalWidth = (imgWidth / 2) * ratio;
+    const finalHeight = (imgHeight / 2) * ratio;
     
     const x = (pdfWidth - finalWidth) / 2;
     const y = 10;
 
-    pdf.addImage(imgData, "PNG", x, y, finalWidth, finalHeight, undefined, 'FAST');
+    pdf.addImage(imgData, "PNG", x, y, finalWidth, finalHeight);
     pdf.save(`${title.replace(/\s+/g, "_")}${filledData ? "" : "_Blank"}.pdf`);
   } catch (error) {
     console.error("Error generating PDF:", error);
-    alert("Failed to generate PDF. The document might be too large or complex. Please try again.");
+    alert("Failed to generate PDF. Please try again.");
   } finally {
     document.body.removeChild(container);
   }
