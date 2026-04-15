@@ -57,7 +57,12 @@ export default function RegisterPage() {
       }
       navigate("/dashboard");
     } catch (err: any) {
-      setError("Google registration failed. Please try again.");
+      console.error("Google Register Error:", err);
+      if (err.code === "auth/unauthorized-domain") {
+        setError("This domain is not authorized in Firebase. Please add your Vercel URL to 'Authorized domains' in Firebase Console.");
+      } else {
+        setError(err.message || "Google registration failed. Please try again.");
+      }
     } finally {
       setLoading(false);
     }

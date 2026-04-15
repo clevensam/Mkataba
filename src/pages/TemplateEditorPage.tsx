@@ -177,7 +177,7 @@ export default function TemplateEditorPage() {
     <div className="bg-slate-50 min-h-screen pb-20">
       {/* Header */}
       <div className="glass sticky top-0 z-50 px-6 py-4 border-b border-slate-200">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
+        <div className="w-full flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link to="/admin/templates" className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
               <ArrowLeft className="w-5 h-5 text-slate-600" />
@@ -215,7 +215,7 @@ export default function TemplateEditorPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 mt-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div className="w-full px-6 mt-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left Sidebar: Settings & Fields */}
         <div className="lg:col-span-4 space-y-6">
           {/* Basic Info */}

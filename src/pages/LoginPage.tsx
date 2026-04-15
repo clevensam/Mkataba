@@ -49,7 +49,12 @@ export default function LoginPage() {
       }
       navigate("/dashboard");
     } catch (err: any) {
-      setError("Google sign-in failed. Please try again.");
+      console.error("Google Login Error:", err);
+      if (err.code === "auth/unauthorized-domain") {
+        setError("This domain is not authorized in Firebase. Please add your Vercel URL to 'Authorized domains' in Firebase Console.");
+      } else {
+        setError(err.message || "Google sign-in failed. Please try again.");
+      }
     } finally {
       setLoading(false);
     }

@@ -9,9 +9,12 @@ import {
   ChevronRight, 
   Globe, 
   Tag,
-  Loader2
+  Loader2,
+  Download,
+  Edit3
 } from "lucide-react";
 import { motion } from "motion/react";
+import { downloadBlankTemplate } from "../services/pdfService";
 
 const categories = [
   { id: "all", title: "All Templates" },
@@ -63,43 +66,18 @@ export default function TemplatesPage() {
   );
 
   return (
-    <div className="bg-slate-50 min-h-screen py-12 px-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-12">
+    <div className="bg-slate-50 min-h-screen p-6 md:p-10">
+      <div className="w-full">
+        <div className="mb-10">
           <h1 className="text-4xl font-bold text-slate-900 mb-4 tracking-tight">Contract Templates</h1>
           <p className="text-slate-600">Browse and select a template to get started.</p>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Sidebar Filters */}
-          <aside className="w-full lg:w-64 shrink-0">
-            <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm sticky top-24">
-              <div className="flex items-center gap-2 mb-6 text-slate-900 font-bold">
-                <Filter className="w-4 h-4" />
-                Categories
-              </div>
-              <div className="space-y-2">
-                {categories.map(cat => (
-                  <button
-                    key={cat.id}
-                    onClick={() => setSearchParams({ category: cat.id })}
-                    className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                      categoryFilter === cat.id 
-                        ? "bg-brand-600 text-white shadow-md shadow-brand-200" 
-                        : "text-slate-600 hover:bg-slate-50"
-                    }`}
-                  >
-                    {cat.title}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </aside>
-
+        <div className="flex flex-col gap-8">
           {/* Main Content */}
           <div className="flex-grow">
             {/* Search Bar */}
-            <div className="relative mb-8">
+            <div className="relative mb-6">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
               <input
                 type="text"
@@ -108,6 +86,23 @@ export default function TemplatesPage() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 shadow-sm transition-all"
               />
+            </div>
+
+            {/* Category Pills */}
+            <div className="flex flex-wrap gap-2 mb-10">
+              {categories.map(cat => (
+                <button
+                  key={cat.id}
+                  onClick={() => setSearchParams({ category: cat.id })}
+                  className={`px-5 py-2 rounded-full text-sm font-semibold transition-all border ${
+                    categoryFilter === cat.id 
+                      ? "bg-brand-600 text-white border-brand-600 shadow-md shadow-brand-200" 
+                      : "bg-white text-slate-600 border-slate-200 hover:border-brand-300 hover:text-brand-600"
+                  }`}
+                >
+                  {cat.title}
+                </button>
+              ))}
             </div>
 
             {loading ? (
@@ -142,16 +137,24 @@ export default function TemplatesPage() {
                     <h3 className="text-xl font-bold text-slate-900 mb-2 group-hover:text-brand-600 transition-colors">
                       {template.title}
                     </h3>
-                    <p className="text-slate-600 text-sm mb-6 line-clamp-2 flex-grow">
+                    <p className="text-slate-600 text-sm mb-6 line-clamp-3 flex-grow">
                       {template.description}
                     </p>
                     
-                    <Link 
-                      to={`/templates/${template.id}`}
-                      className="btn-secondary w-full py-3 flex items-center justify-center gap-2 group-hover:bg-brand-600 group-hover:text-white group-hover:border-brand-600 transition-all"
-                    >
-                      View Details <ChevronRight className="w-4 h-4" />
-                    </Link>
+                    <div className="grid grid-cols-2 gap-3 mt-auto">
+                      <button 
+                        onClick={() => downloadBlankTemplate(template.title, template.htmlContent)}
+                        className="flex items-center justify-center gap-2 py-3 px-4 bg-slate-100 text-slate-700 rounded-xl font-bold text-sm hover:bg-slate-200 transition-all"
+                      >
+                        <Download className="w-4 h-4" /> Download
+                      </button>
+                      <Link 
+                        to={`/contracts/new/${template.id}`}
+                        className="flex items-center justify-center gap-2 py-3 px-4 bg-brand-600 text-white rounded-xl font-bold text-sm hover:bg-brand-700 shadow-lg shadow-brand-100 transition-all"
+                      >
+                        <Edit3 className="w-4 h-4" /> Use Template
+                      </Link>
+                    </div>
                   </motion.div>
                 ))}
               </div>

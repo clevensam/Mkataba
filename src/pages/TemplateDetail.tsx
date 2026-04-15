@@ -15,6 +15,7 @@ import {
   ChevronRight
 } from "lucide-react";
 import { motion } from "motion/react";
+import { downloadBlankTemplate } from "../services/pdfService";
 
 export default function TemplateDetail() {
   const { id } = useParams();
@@ -67,8 +68,8 @@ export default function TemplateDetail() {
   }
 
   return (
-    <div className="bg-slate-50 min-h-screen py-12 px-6">
-      <div className="max-w-4xl mx-auto">
+    <div className="bg-slate-50 min-h-screen p-6 md:p-10">
+      <div className="w-full">
         <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-slate-600 hover:text-brand-600 font-medium mb-8 transition-colors">
           <ArrowLeft className="w-4 h-4" /> Back to Templates
         </button>
@@ -124,7 +125,10 @@ export default function TemplateDetail() {
                   <Edit3 className="w-5 h-5" /> Start Filling
                 </Link>
                 
-                <button className="btn-secondary w-full py-4 flex items-center justify-center gap-2 text-lg">
+                <button 
+                  onClick={() => downloadBlankTemplate(template.title, template.htmlContent)}
+                  className="btn-secondary w-full py-4 flex items-center justify-center gap-2 text-lg"
+                >
                   <Download className="w-5 h-5" /> Download Blank
                 </button>
               </div>

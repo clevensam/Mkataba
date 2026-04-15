@@ -282,8 +282,8 @@ export default function ContractEditor() {
   return (
     <div className="bg-slate-50 min-h-screen pb-20">
       {/* Editor Header */}
-      <div className="glass sticky top-[73px] z-40 px-6 py-4 border-b border-slate-200">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="glass sticky top-0 z-40 px-6 py-4 border-b border-slate-200">
+        <div className="w-full flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <button onClick={() => navigate(-1)} className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
               <ArrowLeft className="w-5 h-5 text-slate-600" />
@@ -369,7 +369,7 @@ export default function ContractEditor() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 mt-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div className="w-full px-6 mt-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Main Document Area */}
         <div className="lg:col-span-8">
           <motion.div 

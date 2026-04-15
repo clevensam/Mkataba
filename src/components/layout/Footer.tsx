@@ -1,6 +1,18 @@
 import { FileText, Mail, Phone, MapPin } from "lucide-react";
+import { useState, useEffect } from "react";
+import { auth } from "../../firebase";
+import { onAuthStateChanged } from "firebase/auth";
 
 export default function Footer() {
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (u) => setUser(u));
+    return () => unsubscribe();
+  }, []);
+
+  if (user) return null;
+
   return (
     <footer className="bg-slate-900 text-slate-400 py-12 px-6">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">

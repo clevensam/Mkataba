@@ -60,9 +60,9 @@ export default function ManageTemplatesPage() {
   };
 
   return (
-    <div className="bg-slate-50 min-h-screen py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+    <div className="bg-slate-50 min-h-screen p-6 md:p-10">
+      <div className="w-full">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10">
           <div>
             <Link to="/admin" className="text-brand-600 flex items-center gap-2 text-sm font-semibold mb-2 hover:underline">
               <ArrowLeft className="w-4 h-4" /> Back to Admin
