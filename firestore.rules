@@ -1,0 +1,118 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: userId (Auth UID)
+    // Fields:
+    //   - username: string (required, 3-30 chars)
+    //   - email: string (required, email format)
+    //   - role: string (required, USER | ADMIN)
+    //   - createdAt: timestamp (required)
+    //
+    // Collection: templates
+    // Document ID: auto-generated
+    // Fields:
+    //   - title: string (required)
+    //   - category: string (required, enum)
+    //   - language: string (required, enum)
+    //   - description: string
+    //   - htmlContent: string (required)
+    //   - fields: string (required, JSON)
+    //   - blankPdfUrl: string
+    //   - published: bool (required)
+    //   - createdAt: timestamp (required)
+    //
+    // Collection: contracts
+    // Document ID: auto-generated
+    // Fields:
+    //   - userId: string (required, owner UID)
+    //   - templateId: string (required)
+    //   - filledData: string (required, JSON)
+    //   - status: string (required, draft | signed | pending_review | approved)
+    //   - signatureDataUrl: string (optional, base64)
+    //   - adminNote: string (optional)
+    //   - createdAt: timestamp (required)
+    //   - updatedAt: timestamp (required)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'ADMIN' ||
+         request.auth.token.email == "clevensamwel@gmail.com");
+    }
+    
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    // ===============================================================
+    // Collection Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isAuthenticated() && request.auth.uid == userId && 
+                      (request.resource.data.role == 'USER' || (request.resource.data.role == 'ADMIN' && request.auth.token.email == "clevensamwel@gmail.com")) &&
+                      request.resource.data.username is string &&
+                      request.resource.data.username.size() >= 3 &&
+                      request.resource.data.username.size() <= 30 &&
+                      isValidEmail(request.resource.data.email);
+      allow update: if isOwner(userId) && 
+                      (request.resource.data.role == resource.data.role || (request.resource.data.role == 'ADMIN' && request.auth.token.email == "clevensamwel@gmail.com")) &&
+                      request.resource.data.email == resource.data.email;
+    }
+
+    match /templates/{templateId} {
+      allow read: if resource.data.published == true || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    match /contracts/{contractId} {
+      function isValidContract(data) {
+        return data.userId is string &&
+               data.templateId is string &&
+               data.filledData is string &&
+               data.status in ['draft', 'signed', 'pending_review', 'approved'] &&
+               data.filledData.size() < 100000; // Limit size
+      }
+
+      allow read: if (isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin())) ||
+                     (resource.data.sharing.enabled == true);
+      
+      allow create: if isAuthenticated() && 
+                      request.resource.data.userId == request.auth.uid &&
+                      isValidContract(request.resource.data) &&
+                      request.resource.data.status == 'draft';
+                      
+      allow update: if (isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin())) ||
+                      (resource.data.sharing.enabled == true && resource.data.sharing.permission == 'edit' && resource.data.status == 'draft') &&
+                      isValidContract(request.resource.data) &&
+                      // Owner/Admin can change anything, but guest can only change filledData
+                      (isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin()) || 
+                        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['filledData', 'updatedAt']))) &&
+                      // Owner can't change status to approved
+                      (isAdmin() || !isAuthenticated() || (request.resource.data.status != 'approved' || resource.data.status == 'approved')) &&
+                      // If pending_review or approved, owner can't edit data (unless returning to draft)
+                      (isAdmin() || !isAuthenticated() || resource.data.status == 'draft' || resource.data.status == 'signed' || request.resource.data.status == 'draft');
+                      
+      allow delete: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+    }
+  }
+}

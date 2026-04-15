@@ -1,0 +1,77 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "System user profile",
+      "type": "object",
+      "properties": {
+        "username": { "type": "string", "description": "Unique username" },
+        "email": { "type": "string", "format": "email", "description": "User email" },
+        "role": { "type": "string", "enum": ["USER", "ADMIN"], "description": "User role" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["username", "email", "role", "createdAt"]
+    },
+    "Template": {
+      "title": "Template",
+      "description": "Contract template",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "category": { "type": "string", "enum": ["rental", "car_sale", "employment", "loan", "land", "partnership"] },
+        "language": { "type": "string", "enum": ["ENGLISH", "SWAHILI"] },
+        "description": { "type": "string" },
+        "htmlContent": { "type": "string", "description": "HTML with {{field_key}} placeholders" },
+        "fields": { "type": "string", "description": "JSON string of field definitions" },
+        "blankPdfUrl": { "type": "string" },
+        "published": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "category", "language", "htmlContent", "fields", "published"]
+    },
+    "Contract": {
+      "title": "Contract",
+      "description": "User generated contract",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "templateId": { "type": "string" },
+        "filledData": { "type": "string", "description": "JSON string of field values" },
+        "status": { "type": "string", "enum": ["draft", "signed", "pending_review", "approved"] },
+        "signatureDataUrl": { "type": "string", "description": "Base64 signature image" },
+        "signaturePosition": {
+          "type": "object",
+          "properties": {
+            "x": { "type": "number" },
+            "y": { "type": "number" }
+          }
+        },
+        "adminNote": { "type": "string" },
+        "sharing": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "permission": { "type": "string", "enum": ["view", "edit"] }
+          }
+        },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "templateId", "filledData", "status", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/templates/{templateId}": {
+      "schema": "Template",
+      "description": "Contract templates"
+    },
+    "/contracts/{contractId}": {
+      "schema": "Contract",
+      "description": "User contracts"
+    }
+  }
+}
