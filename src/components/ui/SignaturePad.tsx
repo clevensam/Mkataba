@@ -89,7 +89,7 @@ export default function SignaturePadComponent({ onConfirm, onClear }: Props) {
         </button>
       </div>
 
-      <div className="p-6">
+      <div className="p-4">
         {mode === "draw" ? (
           <div className="relative">
             <canvas
@@ -111,7 +111,7 @@ export default function SignaturePadComponent({ onConfirm, onClear }: Props) {
           </div>
         )}
 
-        <div className="flex gap-3 mt-6">
+        <div className="flex gap-3 mt-4">
           <button
             onClick={handleClear}
             className="btn-secondary flex-1 py-2.5 flex items-center justify-center gap-2 text-sm"

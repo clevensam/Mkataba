@@ -213,7 +213,17 @@ export default function ContractEditor() {
           >
             <div className="relative p-2 border-2 border-dashed border-transparent group-hover:border-brand-300 rounded-lg transition-colors">
               <img src={signatureData} alt="Signature" className="h-20 object-contain pointer-events-none" />
-              <div className="absolute -top-6 left-0 bg-brand-600 text-white text-[10px] font-bold px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSignatureData(null);
+                }}
+                className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:bg-red-600"
+                title="Remove signature"
+              >
+                <X className="w-3 h-3" />
+              </button>
+              <div className="absolute -top-8 left-0 bg-brand-600 text-white text-[10px] font-bold px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                 Drag to position signature
               </div>
             </div>
@@ -280,9 +290,9 @@ export default function ContractEditor() {
               <ArrowLeft className="w-5 h-5 text-slate-600" />
             </button>
             <div>
-              <h1 className="text-xl font-bold text-slate-900">{template?.title}</h1>
-              <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
-                <span className={`px-2 py-0.5 rounded-full uppercase tracking-wider ${
+              <h1 className="text-2xl font-bold text-slate-900 tracking-tight">{template?.title}</h1>
+              <div className="mt-1 flex items-center gap-2 text-[10px] font-bold">
+                <span className={`px-2 py-0.5 rounded-md uppercase tracking-wider ${
                   contract?.status === "signed" ? "bg-teal-100 text-teal-700" : "bg-slate-100 text-slate-600"
                 }`}>
                   {contract?.status || "Draft"}
@@ -296,7 +306,7 @@ export default function ContractEditor() {
             <button
               onClick={() => setShowShareModal(true)}
               disabled={!contract?.id}
-              className="p-2 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-xl transition-all"
+              className="p-2 text-slate-400 hover:text-brand-600 transition-all"
               title={!contract?.id ? "Save draft first to share" : "Share contract"}
             >
               <Share2 className="w-5 h-5" />
@@ -305,18 +315,18 @@ export default function ContractEditor() {
             <button
               onClick={handleSave}
               disabled={saving}
-              className="btn-secondary flex items-center gap-2"
+              className="btn-secondary flex items-center gap-2 px-6 py-2.5 shadow-sm"
             >
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              <span className="hidden sm:inline">Save Draft</span>
+              <span className="font-bold">Save Draft</span>
             </button>
           </div>
         </div>
       </div>
 
       {/* Stepper Section (New) */}
-      <div className="bg-white border-b border-slate-200 py-3 px-6">
-        <div className="max-w-4xl mx-auto flex items-center justify-center gap-2">
+      <div className="py-8 px-6">
+        <div className="max-w-4xl mx-auto flex items-center justify-center gap-4">
           {steps.map((step, idx) => (
             <div key={step.id} className="flex items-center">
               <button
@@ -325,23 +335,21 @@ export default function ContractEditor() {
                     setCurrentStep(step.id);
                   }
                 }}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold transition-all ${
                   currentStep === step.id 
-                    ? "bg-brand-600 text-white shadow-md shadow-brand-100" 
-                    : currentStep > step.id 
-                      ? "text-brand-600 bg-brand-50" 
-                      : "text-slate-400 hover:text-slate-600"
+                    ? "bg-brand-600 text-white shadow-2xl shadow-brand-400/40 ring-4 ring-brand-50" 
+                    : "text-slate-400"
                 }`}
               >
-                <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[8px] ${
-                  currentStep >= step.id ? "bg-white/20" : "bg-slate-100"
+                <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${
+                  currentStep === step.id ? "bg-white/20" : "bg-slate-200 text-slate-500"
                 }`}>
                   {currentStep > step.id ? <CheckCircle2 className="w-3 h-3" /> : step.id}
                 </div>
                 {step.name}
               </button>
               {idx < steps.length - 1 && (
-                <div className="w-4 md:w-8 h-[1px] bg-slate-200 mx-1" />
+                <div className="w-16 h-[1px] bg-slate-200 mx-2" />
               )}
             </div>
           ))}
@@ -354,7 +362,7 @@ export default function ContractEditor() {
           layout
           ref={containerRef}
           id="contract-document"
-          className="bg-white rounded-2xl shadow-xl shadow-slate-200/50 p-6 md:p-12 border border-slate-100 min-h-[1000px] relative overflow-hidden"
+          className="bg-white rounded-2xl shadow-xl shadow-slate-200/50 p-4 md:p-6 border border-slate-100 min-h-[1000px] relative overflow-hidden"
         >
           {renderContent()}
         </motion.div>
@@ -520,11 +528,11 @@ export default function ContractEditor() {
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
               className="relative w-full max-w-lg"
             >
-              <div className="bg-white rounded-3xl p-8 shadow-2xl">
+              <div className="bg-white rounded-3xl p-6 shadow-2xl">
                 <div className="flex justify-between items-center mb-6">
                   <h2 className="text-2xl font-bold text-slate-900">Sign Contract</h2>
                   <button onClick={() => setShowSignature(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
-                    <ArrowLeft className="w-6 h-6" />
+                    <X className="w-6 h-6" />
                   </button>
                 </div>
                 
