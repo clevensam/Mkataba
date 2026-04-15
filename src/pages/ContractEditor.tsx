@@ -510,15 +510,17 @@ export default function ContractEditor() {
                         </div>
                       </div>
 
-                      <a 
-                        href={shareUrl} 
-                        target="_blank" 
-                        rel="noreferrer"
-                        className="flex items-center justify-center gap-2 text-sm font-bold text-brand-600 hover:underline pt-2"
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                        Open shared link
-                      </a>
+                      {contract?.id && (
+                        <a 
+                          href={shareUrl} 
+                          target="_blank" 
+                          rel="noreferrer"
+                          className="flex items-center justify-center gap-2 text-sm font-bold text-brand-600 hover:underline pt-2"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                          Open shared link
+                        </a>
+                      )}
                     </motion.div>
                   )}
                 </div>

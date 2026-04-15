@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { db, auth } from "../firebase";
-import { collection, query, where, getDocs, orderBy, deleteDoc, doc, updateDoc, limit } from "firebase/firestore";
+import { collection, query, where, getDocs, getDoc, orderBy, deleteDoc, doc, updateDoc, limit } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { 
   FileText, 
@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { format } from "date-fns";
-import { downloadBlankTemplate } from "../services/pdfService";
+import { downloadContractPDF, downloadBlankTemplate } from "../services/pdfService";
 
 export default function Dashboard() {
   const [contracts, setContracts] = useState<any[]>([]);
@@ -34,8 +34,30 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isDownloading, setIsDownloading] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  const handleDownloadContract = async (contract: any) => {
+    setIsDownloading(contract.id);
+    try {
+      const templateDoc = await getDoc(doc(db, "templates", contract.templateId));
+      if (templateDoc.exists()) {
+        const templateData = templateDoc.data();
+        await downloadContractPDF(
+          templateData.title, 
+          templateData.htmlContent, 
+          JSON.parse(contract.filledData)
+        );
+      } else {
+        alert("Template not found for this contract.");
+      }
+    } catch (error) {
+      console.error("Error downloading contract:", error);
+    } finally {
+      setIsDownloading(null);
+    }
+  };
 
   const makeAdmin = async () => {
     if (!user) return;
@@ -257,12 +279,24 @@ export default function Dashboard() {
                         <Link 
                           to={`/contracts/${contract.id}/edit`}
                           className="p-2 hover:bg-brand-50 rounded-lg transition-colors text-slate-400 hover:text-brand-600"
+                          title="Edit"
                         >
                           <Edit3 className="w-5 h-5" />
                         </Link>
                         <button 
+                          type="button"
+                          onClick={() => handleDownloadContract(contract)}
+                          disabled={isDownloading === contract.id}
+                          className="p-2 hover:bg-brand-50 rounded-lg transition-colors text-slate-400 hover:text-brand-600 disabled:opacity-50"
+                          title="Download PDF"
+                        >
+                          {isDownloading === contract.id ? <Loader2 className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
+                        </button>
+                        <button 
+                          type="button"
                           onClick={() => setDeleteConfirmId(contract.id)}
                           className="p-2 hover:bg-red-50 rounded-lg transition-colors text-slate-400 hover:text-red-600"
+                          title="Delete"
                         >
                           <Trash2 className="w-5 h-5" />
                         </button>
