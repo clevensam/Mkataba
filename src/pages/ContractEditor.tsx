@@ -381,6 +381,26 @@ export default function ContractEditor() {
             {currentStep === 3 && (
               <>
                 <button
+                  onClick={async () => {
+                    if (!template) return;
+                    setIsPrintingBlank(true);
+                    // Small delay to ensure state update renders underscores
+                    setTimeout(async () => {
+                      try {
+                        await generateContractPDF("contract-document", `${template.title.replace(/\s+/g, '_')}_Blank.pdf`);
+                      } catch (error) {
+                        console.error("Error generating blank PDF:", error);
+                      } finally {
+                        setIsPrintingBlank(false);
+                      }
+                    }, 100);
+                  }}
+                  className="btn-secondary flex items-center gap-2"
+                  title="Download an unfilled copy"
+                >
+                  <FileText className="w-4 h-4" /> Download Blank
+                </button>
+                <button
                   onClick={handleDownload}
                   className="btn-secondary flex items-center gap-2"
                 >

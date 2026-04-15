@@ -10,82 +10,96 @@ import { toPng } from "html-to-image";
 export async function downloadContractPDF(title: string, htmlContent: string, filledData?: Record<string, string>) {
   // Create a temporary container to render the HTML
   const container = document.createElement("div");
-  container.style.width = "800px"; // Fixed width for consistent rendering
-  container.style.padding = "40px";
-  container.style.fontFamily = "'Inter', sans-serif";
+  // Ensure the container is in the DOM but not visible to the user
+  container.style.width = "800px";
+  container.style.padding = "60px";
+  container.style.fontFamily = "'Inter', 'Segoe UI', Roboto, sans-serif";
   container.style.lineHeight = "1.6";
   container.style.color = "#000";
   container.style.backgroundColor = "#fff";
-  container.style.position = "absolute";
-  container.style.left = "-9999px";
+  container.style.position = "fixed";
+  container.style.left = "0";
   container.style.top = "0";
+  container.style.zIndex = "-1000";
+  container.style.visibility = "hidden";
   
   // Replace placeholders
   let processedHtml = htmlContent;
-  if (filledData) {
+  if (filledData && Object.keys(filledData).length > 0) {
     processedHtml = htmlContent.replace(/\{\{(.*?)\}\}/g, (match, id) => {
-      return `<span style="font-weight: bold; border-bottom: 1px solid #000; padding: 0 4px;">${filledData[id] || "__________"}</span>`;
+      const value = filledData[id];
+      return `<span style="font-weight: bold; border-bottom: 1px solid #000; padding: 0 4px; min-width: 100px; display: inline-block;">${value || "__________"}</span>`;
     });
   } else {
-    // Blank version
-    processedHtml = htmlContent.replace(/\{\{(.*?)\}\}/g, "____________________");
+    // Blank version - use a more visible placeholder
+    processedHtml = htmlContent.replace(/\{\{(.*?)\}\}/g, '<span style="border-bottom: 1px solid #000; min-width: 150px; display: inline-block; margin: 0 4px;">&nbsp;</span>');
   }
   
   container.innerHTML = `
-    <div style="margin-bottom: 30px; text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px;">
-      <h1 style="font-size: 24pt; margin: 0; font-family: serif;">${title}</h1>
+    <div style="margin-bottom: 40px; text-align: center; border-bottom: 3px solid #000; padding-bottom: 15px;">
+      <h1 style="font-size: 28pt; margin: 0; font-family: serif; color: #1a202c;">${title}</h1>
     </div>
-    <div style="font-size: 12pt;">
+    <div style="font-size: 13pt; color: #2d3748;">
       ${processedHtml}
     </div>
-    <div style="margin-top: 50px; display: flex; justify-content: space-between;">
-      <div style="width: 45%; border-top: 1px solid #000; padding-top: 5px;">
-        <p style="margin: 0; font-weight: bold;">Signature</p>
-        <p style="margin: 0; font-size: 10pt; color: #666;">Date: ____/____/____</p>
+    <div style="margin-top: 80px; display: flex; justify-content: space-between;">
+      <div style="width: 42%; border-top: 2px solid #000; padding-top: 10px;">
+        <p style="margin: 0; font-weight: bold; font-size: 11pt;">SIGNATURE</p>
+        <p style="margin: 10px 0 0 0; font-size: 10pt; color: #718096;">Date: ____/____/20____</p>
       </div>
-      <div style="width: 45%; border-top: 1px solid #000; padding-top: 5px;">
-        <p style="margin: 0; font-weight: bold;">Signature</p>
-        <p style="margin: 0; font-size: 10pt; color: #666;">Date: ____/____/____</p>
+      <div style="width: 42%; border-top: 2px solid #000; padding-top: 10px;">
+        <p style="margin: 0; font-weight: bold; font-size: 11pt;">SIGNATURE</p>
+        <p style="margin: 10px 0 0 0; font-size: 10pt; color: #718096;">Date: ____/____/20____</p>
       </div>
+    </div>
+    <div style="margin-top: 40px; text-align: center; font-size: 9pt; color: #a0aec0;">
+      Generated via ContractFlow • ${new Date().toLocaleDateString()}
     </div>
   `;
 
   document.body.appendChild(container);
 
   try {
-    // Wait for images or fonts to load if any
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Give more time for rendering
+    await new Promise(resolve => setTimeout(resolve, 800));
 
     const imgData = await toPng(container, {
       quality: 1.0,
-      pixelRatio: 2,
+      pixelRatio: 3, // Higher quality
       backgroundColor: "#ffffff",
+      skipFonts: false,
     });
+
+    if (!imgData || imgData === "data:,") {
+      throw new Error("Generated image is empty");
+    }
 
     const pdf = new jsPDF("p", "mm", "a4");
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight = pdf.internal.pageSize.getHeight();
     
-    // Create a temporary image to get dimensions
     const img = new Image();
     img.src = imgData;
-    await new Promise((resolve) => (img.onload = resolve));
+    await new Promise((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = reject;
+    });
 
     const imgWidth = img.width;
     const imgHeight = img.height;
-    const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+    const ratio = Math.min(pdfWidth / (imgWidth / 3), pdfHeight / (imgHeight / 3));
     
-    const finalWidth = imgWidth * ratio;
-    const finalHeight = imgHeight * ratio;
+    const finalWidth = (imgWidth / 3) * ratio;
+    const finalHeight = (imgHeight / 3) * ratio;
     
     const x = (pdfWidth - finalWidth) / 2;
     const y = 10;
 
-    pdf.addImage(imgData, "PNG", x, y, finalWidth, finalHeight);
+    pdf.addImage(imgData, "PNG", x, y, finalWidth, finalHeight, undefined, 'FAST');
     pdf.save(`${title.replace(/\s+/g, "_")}${filledData ? "" : "_Blank"}.pdf`);
   } catch (error) {
     console.error("Error generating PDF:", error);
-    alert("Failed to generate PDF. Please try again.");
+    alert("Failed to generate PDF. The document might be too large or complex. Please try again.");
   } finally {
     document.body.removeChild(container);
   }
