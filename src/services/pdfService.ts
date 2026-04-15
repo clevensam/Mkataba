@@ -1,4 +1,5 @@
 import { jsPDF } from "jspdf";
+import { toPng } from "html-to-image";
 
 /**
  * Generates a PDF from HTML content, optionally filling placeholders
@@ -7,22 +8,17 @@ import { jsPDF } from "jspdf";
  * @param filledData Optional data to fill placeholders
  */
 export async function downloadContractPDF(title: string, htmlContent: string, filledData?: Record<string, string>) {
-  const doc = new jsPDF({
-    orientation: "portrait",
-    unit: "mm",
-    format: "a4",
-  });
-
   // Create a temporary container to render the HTML
   const container = document.createElement("div");
-  container.style.width = "190mm"; // A4 width minus margins
-  container.style.padding = "20mm";
-  container.style.fontFamily = "serif";
+  container.style.width = "800px"; // Fixed width for consistent rendering
+  container.style.padding = "40px";
+  container.style.fontFamily = "'Inter', sans-serif";
   container.style.lineHeight = "1.6";
   container.style.color = "#000";
   container.style.backgroundColor = "#fff";
   container.style.position = "absolute";
   container.style.left = "-9999px";
+  container.style.top = "0";
   
   // Replace placeholders
   let processedHtml = htmlContent;
@@ -37,7 +33,7 @@ export async function downloadContractPDF(title: string, htmlContent: string, fi
   
   container.innerHTML = `
     <div style="margin-bottom: 30px; text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px;">
-      <h1 style="font-size: 24pt; margin: 0;">${title}</h1>
+      <h1 style="font-size: 24pt; margin: 0; font-family: serif;">${title}</h1>
     </div>
     <div style="font-size: 12pt;">
       ${processedHtml}
@@ -57,15 +53,36 @@ export async function downloadContractPDF(title: string, htmlContent: string, fi
   document.body.appendChild(container);
 
   try {
-    await doc.html(container, {
-      callback: function (doc) {
-        doc.save(`${title.replace(/\s+/g, "_")}${filledData ? "" : "_Blank"}.pdf`);
-      },
-      x: 10,
-      y: 10,
-      width: 190,
-      windowWidth: 800,
+    // Wait for images or fonts to load if any
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    const imgData = await toPng(container, {
+      quality: 1.0,
+      pixelRatio: 2,
+      backgroundColor: "#ffffff",
     });
+
+    const pdf = new jsPDF("p", "mm", "a4");
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = pdf.internal.pageSize.getHeight();
+    
+    // Create a temporary image to get dimensions
+    const img = new Image();
+    img.src = imgData;
+    await new Promise((resolve) => (img.onload = resolve));
+
+    const imgWidth = img.width;
+    const imgHeight = img.height;
+    const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+    
+    const finalWidth = imgWidth * ratio;
+    const finalHeight = imgHeight * ratio;
+    
+    const x = (pdfWidth - finalWidth) / 2;
+    const y = 10;
+
+    pdf.addImage(imgData, "PNG", x, y, finalWidth, finalHeight);
+    pdf.save(`${title.replace(/\s+/g, "_")}${filledData ? "" : "_Blank"}.pdf`);
   } catch (error) {
     console.error("Error generating PDF:", error);
     alert("Failed to generate PDF. Please try again.");
