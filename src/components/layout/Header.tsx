@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { FileText } from "lucide-react";
+import { Handshake } from "lucide-react";
 import { useState, useEffect } from "react";
 import { auth } from "../../firebase";
 import { onAuthStateChanged } from "firebase/auth";
@@ -20,9 +20,9 @@ export default function Header() {
       <div className="max-w-7xl mx-auto flex justify-between items-center">
         <Link to="/" className="flex items-center gap-2 group">
           <div className="bg-brand-600 p-2 rounded-lg group-hover:rotate-12 transition-transform">
-            <FileText className="text-white w-6 h-6" />
+            <Handshake className="text-white w-6 h-6" />
           </div>
-          <span className="text-2xl font-bold tracking-tight text-slate-900">Mikataba</span>
+          <span className="text-2xl font-bold tracking-tight text-slate-900">Trustfy</span>
         </Link>
 
         <nav className="hidden md:flex items-center gap-8">

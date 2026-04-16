@@ -65,7 +65,7 @@ export default function LandingPage() {
               <span className="text-brand-600">in Minutes.</span>
             </h1>
             <p className="max-w-2xl mx-auto text-xl text-slate-600 mb-10 leading-relaxed">
-              Mikataba provides legally structured templates for rental agreements, vehicle sales, 
+              Trustfy provides legally structured templates for rental agreements, vehicle sales, 
               employment, and more. Fill, sign, and download professionally.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">

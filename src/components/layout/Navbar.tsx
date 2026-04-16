@@ -15,7 +15,8 @@ import {
   Layers,
   Settings,
   PlusCircle,
-  User
+  User,
+  Handshake
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -73,14 +74,14 @@ export default function Navbar() {
           {!isCollapsed && (
             <Link to="/dashboard" className="flex items-center gap-2 group">
               <div className="bg-brand-600 p-2 rounded-lg group-hover:rotate-12 transition-transform">
-                <FileText className="text-white w-6 h-6" />
+                <Handshake className="text-white w-6 h-6" />
               </div>
-              <span className="text-xl font-bold tracking-tight text-slate-900">Mikataba</span>
+              <span className="text-xl font-bold tracking-tight text-slate-900">Trustfy</span>
             </Link>
           )}
           {isCollapsed && (
             <div className="bg-brand-600 p-2 rounded-lg mx-auto">
-              <FileText className="text-white w-6 h-6" />
+              <Handshake className="text-white w-6 h-6" />
             </div>
           )}
         </div>
