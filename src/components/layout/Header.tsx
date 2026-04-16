@@ -1,19 +1,22 @@
-import { Link } from "react-router-dom";
-import { Handshake } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Handshake, LogOut } from "lucide-react";
 import { useState, useEffect } from "react";
 import { auth } from "../../firebase";
-import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged, signOut } from "firebase/auth";
 
 export default function Header() {
   const [user, setUser] = useState<any>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (u) => setUser(u));
     return () => unsubscribe();
   }, []);
 
-  // If user is logged in, the Sidebar/BottomBar handles navigation
-  if (user) return null;
+  const handleLogout = async () => {
+    await signOut(auth);
+    navigate("/");
+  };
 
   return (
     <header className="bg-white/80 backdrop-blur-md border-b border-slate-100 sticky top-0 z-50 px-6 py-4">
@@ -25,23 +28,32 @@ export default function Header() {
           <span className="text-2xl font-bold tracking-tight text-slate-900">Trustfy</span>
         </Link>
 
-        <nav className="hidden md:flex items-center gap-8">
-          <Link to="/templates" className="text-slate-600 hover:text-brand-600 font-medium transition-colors">
-            Templates
-          </Link>
-          <Link to="/login" className="text-slate-600 hover:text-brand-600 font-medium transition-colors">
-            Login
-          </Link>
-          <Link to="/register" className="btn-primary">
-            Get Started
-          </Link>
-        </nav>
-
-        <div className="md:hidden">
-          <Link to="/login" className="btn-primary text-sm">
-            Sign In
-          </Link>
-        </div>
+        {user ? (
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={handleLogout}
+              className="md:hidden flex items-center gap-2 text-slate-600 font-bold text-sm bg-slate-50 px-4 py-2 rounded-xl border border-slate-100 hover:text-red-600 transition-colors"
+            >
+              <LogOut size={18} /> Logout
+            </button>
+          </div>
+        ) : (
+          <nav className="flex items-center gap-8">
+            <div className="hidden md:flex items-center gap-8">
+              <Link to="/login" className="text-slate-600 hover:text-brand-600 font-medium transition-colors">
+                Login
+              </Link>
+              <Link to="/register" className="btn-primary">
+                Get Started
+              </Link>
+            </div>
+            <div className="md:hidden">
+              <Link to="/login" className="btn-primary text-sm px-6 py-2.5">
+                Sign In
+              </Link>
+            </div>
+          </nav>
+        )}
       </div>
     </header>
   );

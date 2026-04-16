@@ -80,10 +80,12 @@ export default function LandingPage() {
             <span className="inline-block px-4 py-1.5 mb-6 text-sm font-bold tracking-wider text-brand-700 uppercase bg-brand-100 rounded-full">
               Legal Platform for Tanzania
             </span>
-            <h1 className="text-5xl md:text-7xl font-extrabold text-slate-900 mb-8 tracking-tighter">
-              The contract you need, <br />
-              <span className="text-brand-600">in 60 seconds.</span>
-            </h1>
+            <Link to="/login" className="block hover:opacity-80 transition-opacity">
+              <h1 className="text-5xl md:text-7xl font-extrabold text-slate-900 mb-8 tracking-tighter">
+                The contract you need, <br />
+                <span className="text-brand-600">in 60 seconds.</span>
+              </h1>
+            </Link>
             <p className="max-w-2xl mx-auto text-xl text-slate-600 mb-0 leading-relaxed font-medium">
               Transparent, professional, and legally compliant. Select a document below to get started.
             </p>

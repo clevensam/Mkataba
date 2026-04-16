@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { auth, db } from "../firebase";
-import { onAuthStateChanged, updateProfile } from "firebase/auth";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { User, Mail, Shield, Save, Loader2, Camera } from "lucide-react";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+import { Mail, Shield, Loader2, LogOut } from "lucide-react";
 import { motion } from "motion/react";
+import { useNavigate } from "react-router-dom";
 
 export default function ProfilePage() {
   const [user, setUser] = useState<any>(null);
   const [role, setRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (u) => {
@@ -18,11 +20,18 @@ export default function ProfilePage() {
         if (userDoc.exists()) {
           setRole(userDoc.data().role);
         }
+      } else {
+        navigate("/login");
       }
       setLoading(false);
     });
     return () => unsubscribe();
-  }, []);
+  }, [navigate]);
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    navigate("/");
+  };
 
   if (loading) {
     return (
@@ -34,10 +43,18 @@ export default function ProfilePage() {
 
   return (
     <div className="bg-slate-50 min-h-screen p-6 md:p-10">
-      <div className="max-w-3xl mx-auto">
-        <header className="mb-10">
-          <h1 className="text-4xl font-bold text-slate-900 mb-2 tracking-tight">My Profile</h1>
-          <p className="text-slate-600">Your personal account information.</p>
+      <div className="max-w-3xl mx-auto pb-20 md:pb-0">
+        <header className="mb-10 flex justify-between items-end">
+          <div>
+            <h1 className="text-4xl font-bold text-slate-900 mb-2 tracking-tight">My Profile</h1>
+            <p className="text-slate-600">Your personal account information.</p>
+          </div>
+          <button 
+            onClick={handleLogout}
+            className="md:hidden flex items-center gap-2 px-6 py-3 bg-white border-2 border-slate-100 text-slate-600 font-bold rounded-2xl hover:text-red-600 hover:border-red-100 transition-all shadow-sm"
+          >
+            <LogOut size={20} /> Logout
+          </button>
         </header>
 
         <div className="grid grid-cols-1 gap-8">
@@ -80,12 +97,21 @@ export default function ProfilePage() {
               <div className="space-y-1">
                 <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Member Since</p>
                 <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                  <Loader2 className="w-5 h-5 text-slate-400" />
-                  <p className="font-medium text-slate-900">
+                  <Loader2 className="w-5 h-5 text-slate-400 shrink-0" />
+                  <p className="font-medium text-slate-900 truncate">
                     {user?.metadata?.creationTime ? new Date(user.metadata.creationTime).toLocaleDateString() : "N/A"}
                   </p>
                 </div>
               </div>
+            </div>
+
+            <div className="mt-10 pt-10 border-t border-slate-100 hidden md:block">
+              <button 
+                onClick={handleLogout}
+                className="flex items-center gap-3 px-8 py-4 bg-red-50 text-red-600 font-bold rounded-2xl hover:bg-red-100 transition-all"
+              >
+                <LogOut size={22} /> Sign Out of Account
+              </button>
             </div>
           </motion.div>
         </div>
