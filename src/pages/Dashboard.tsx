@@ -154,12 +154,6 @@ export default function Dashboard() {
             <h2 className="text-sm font-bold text-slate-400 uppercase tracking-widest">Dashboard</h2>
           </div>
           <div className="flex items-center gap-4 ml-auto">
-            <button className="p-2 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-xl transition-all" title="Toggle Theme">
-              <Sparkles className="w-5 h-5" />
-            </button>
-            <Link to="/profile" className="p-2 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-xl transition-all" title="Settings">
-              <Settings className="w-5 h-5" />
-            </Link>
             <div className="h-8 w-[1px] bg-slate-200 mx-2" />
             <Link to="/profile" className="flex items-center gap-3 pl-2 group">
               <div className="text-right hidden sm:block">
@@ -185,7 +179,6 @@ export default function Dashboard() {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
               <div className="flex items-center gap-2 text-brand-600 font-bold text-sm mb-2">
-                <Sparkles className="w-4 h-4" />
                 Welcome Back
               </div>
               <h1 className="text-4xl font-bold text-slate-900 mb-2 tracking-tight">
