@@ -339,17 +339,6 @@ export default function Dashboard() {
                 </Link>
               </div>
             </div>
-
-            <div className="bg-slate-900 rounded-3xl p-6 text-white relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/20 blur-3xl rounded-full -translate-y-1/2 translate-x-1/2" />
-              <h3 className="text-xl font-bold mb-2 relative z-10">Need Help?</h3>
-              <p className="text-slate-400 text-sm mb-6 relative z-10">
-                Our team is ready to help you with any legal questions or platform issues.
-              </p>
-              <button className="bg-white text-slate-900 px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-brand-50 transition-all relative z-10">
-                Contact Support
-              </button>
-            </div>
           </div>
         </div>
       </div>
