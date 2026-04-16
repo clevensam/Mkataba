@@ -44,17 +44,9 @@ export default function ProfilePage() {
   return (
     <div className="bg-slate-50 min-h-screen p-6 md:p-10">
       <div className="max-w-3xl mx-auto pb-20 md:pb-0">
-        <header className="mb-10 flex justify-between items-end">
-          <div>
-            <h1 className="text-4xl font-bold text-slate-900 mb-2 tracking-tight">My Profile</h1>
-            <p className="text-slate-600">Your personal account information.</p>
-          </div>
-          <button 
-            onClick={handleLogout}
-            className="md:hidden flex items-center gap-2 px-6 py-3 bg-white border-2 border-slate-100 text-slate-600 font-bold rounded-2xl hover:text-red-600 hover:border-red-100 transition-all shadow-sm"
-          >
-            <LogOut size={20} /> Logout
-          </button>
+        <header className="mb-10">
+          <h1 className="text-4xl font-bold text-slate-900 mb-2 tracking-tight">My Profile</h1>
+          <p className="text-slate-600">Your personal account information.</p>
         </header>
 
         <div className="grid grid-cols-1 gap-8">

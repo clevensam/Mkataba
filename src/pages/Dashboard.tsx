@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { db, auth } from "../firebase";
 import { collection, query, where, getDocs, getDoc, orderBy, deleteDoc, doc, updateDoc, limit } from "firebase/firestore";
-import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged, signOut } from "firebase/auth";
 import { 
   FileText, 
   Plus, 
@@ -22,7 +22,8 @@ import {
   ArrowRight,
   Sparkles,
   Search,
-  Settings
+  Settings,
+  LogOut
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { format } from "date-fns";
@@ -116,6 +117,11 @@ export default function Dashboard() {
     fetchData();
   }, [user]);
 
+  const handleLogout = async () => {
+    await signOut(auth);
+    navigate("/");
+  };
+
   const handleDelete = async (id: string) => {
     try {
       await deleteDoc(doc(db, "contracts", id));
@@ -147,31 +153,6 @@ export default function Dashboard() {
 
   return (
     <div className="bg-slate-50 min-h-screen">
-      {/* Dashboard Top Header */}
-      <div className="bg-white border-b border-slate-200 px-6 md:px-10 py-4 sticky top-0 z-30">
-        <div className="w-full max-w-7xl mx-auto flex items-center justify-between">
-          <div className="hidden md:block">
-            <h2 className="text-sm font-bold text-slate-400 uppercase tracking-widest">Dashboard</h2>
-          </div>
-          <div className="flex items-center gap-4 ml-auto">
-            <div className="h-8 w-[1px] bg-slate-200 mx-2" />
-            <Link to="/profile" className="flex items-center gap-3 pl-2 group">
-              <div className="text-right hidden sm:block">
-                <p className="text-sm font-bold text-slate-900 group-hover:text-brand-600 transition-colors">
-                  {user?.displayName || user?.email?.split('@')[0]}
-                </p>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                  {user?.email}
-                </p>
-              </div>
-              <div className="w-10 h-10 bg-brand-100 rounded-xl flex items-center justify-center text-brand-600 font-bold border border-brand-200 group-hover:scale-105 transition-transform">
-                {user?.displayName?.[0] || user?.email?.[0]?.toUpperCase()}
-              </div>
-            </Link>
-          </div>
-        </div>
-      </div>
-
       <div className="p-6 md:p-10">
         <div className="w-full max-w-7xl mx-auto">
           {/* Welcome Header */}
