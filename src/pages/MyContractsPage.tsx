@@ -200,15 +200,6 @@ export default function MyContractsPage() {
                     </Link>
                     <button 
                       type="button"
-                      onClick={() => handleDownloadContract(contract)}
-                      disabled={isDownloading === contract.id}
-                      className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-400 hover:text-brand-600 disabled:opacity-50"
-                      title="Download PDF"
-                    >
-                      {isDownloading === contract.id ? <Loader2 className="w-5 h-5 animate-spin" /> : <Download className="w-5 h-5" />}
-                    </button>
-                    <button 
-                      type="button"
                       onClick={() => setDeleteConfirmId(contract.id)}
                       className="p-2 hover:bg-red-50 rounded-lg transition-colors text-slate-400 hover:text-red-600"
                       title="Delete"

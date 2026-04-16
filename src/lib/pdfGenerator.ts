@@ -7,13 +7,17 @@ export async function generateContractPDF(elementId: string, fileName: string) {
 
   try {
     // Ensure all styles are applied
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise(resolve => setTimeout(resolve, 1500));
 
     const imgData = await toPng(element, {
       quality: 1.0,
       pixelRatio: 2,
       backgroundColor: "#ffffff",
       cacheBust: true,
+      style: {
+        visibility: 'visible',
+        opacity: '1'
+      }
     });
 
     if (!imgData || imgData === "data:,") {

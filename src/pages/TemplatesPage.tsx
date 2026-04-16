@@ -11,9 +11,11 @@ import {
   Tag,
   Loader2,
   Download,
-  Edit3
+  Edit3,
+  Eye,
+  X
 } from "lucide-react";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import { downloadBlankTemplate } from "../services/pdfService";
 
 const categories = [
@@ -32,6 +34,8 @@ export default function TemplatesPage() {
   const [templates, setTemplates] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [previewTemplate, setPreviewTemplate] = useState<any | null>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   useEffect(() => {
     const fetchTemplates = async () => {
@@ -143,10 +147,10 @@ export default function TemplatesPage() {
                     
                     <div className="grid grid-cols-2 gap-3 mt-auto">
                       <button 
-                        onClick={() => downloadBlankTemplate(template.title, template.htmlContent)}
+                        onClick={() => setPreviewTemplate(template)}
                         className="flex items-center justify-center gap-2 py-3 px-4 bg-slate-100 text-slate-700 rounded-xl font-bold text-sm hover:bg-slate-200 transition-all"
                       >
-                        <Download className="w-4 h-4" /> Download
+                        <Eye className="w-4 h-4" /> View
                       </button>
                       <Link 
                         to={`/contracts/new/${template.id}`}
@@ -168,6 +172,73 @@ export default function TemplatesPage() {
           </div>
         </div>
       </div>
+
+      {/* Preview Modal */}
+      <AnimatePresence>
+        {previewTemplate && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col"
+            >
+              <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-white sticky top-0 z-10">
+                <div>
+                  <h2 className="text-2xl font-bold text-slate-900">{previewTemplate.title}</h2>
+                  <p className="text-slate-500 text-sm">Template Preview</p>
+                </div>
+                <button 
+                  onClick={() => setPreviewTemplate(null)}
+                  className="p-2 hover:bg-slate-100 rounded-full transition-colors"
+                >
+                  <X className="w-6 h-6 text-slate-400" />
+                </button>
+              </div>
+              
+              <div className="flex-grow overflow-y-auto p-8 bg-slate-50">
+                <div className="bg-white shadow-sm border border-slate-200 rounded-xl p-8 md:p-12 min-h-[600px] mx-auto max-w-[800px]">
+                  <div 
+                    className="prose prose-slate max-w-none contract-preview"
+                    dangerouslySetInnerHTML={{ 
+                      __html: previewTemplate.htmlContent.replace(/\{\{(.*?)\}\}/g, '<span class="bg-brand-50 text-brand-700 px-2 py-0.5 rounded border border-brand-100 text-xs font-mono">$1</span>') 
+                    }}
+                  />
+                </div>
+              </div>
+              
+              <div className="p-6 border-t border-slate-100 bg-white flex justify-end gap-3">
+                <button
+                  onClick={async () => {
+                    if (isDownloading) return;
+                    setIsDownloading(true);
+                    try {
+                      await downloadBlankTemplate(previewTemplate.title, previewTemplate.htmlContent);
+                    } finally {
+                      setIsDownloading(false);
+                    }
+                  }}
+                  disabled={isDownloading}
+                  className="btn-secondary flex items-center gap-2 disabled:opacity-50"
+                >
+                  {isDownloading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Download className="w-4 h-4" />
+                  )}
+                  {isDownloading ? "Generating..." : "Download Blank"}
+                </button>
+                <Link
+                  to={`/contracts/new/${previewTemplate.id}`}
+                  className="btn-primary flex items-center gap-2"
+                >
+                  <Edit3 className="w-4 h-4" /> Use This Template
+                </Link>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
