@@ -159,23 +159,6 @@ export default function Navbar() {
             <span className="text-[10px] font-bold uppercase tracking-wider">{item.name}</span>
           </Link>
         ))}
-        {user ? (
-          <button
-            onClick={handleLogout}
-            className="flex flex-col items-center gap-1 text-slate-400"
-          >
-            <LogOut size={24} />
-            <span className="text-[10px] font-bold uppercase tracking-wider">Exit</span>
-          </button>
-        ) : (
-          <Link
-            to="/login"
-            className="flex flex-col items-center gap-1 text-slate-400"
-          >
-            <User size={24} />
-            <span className="text-[10px] font-bold uppercase tracking-wider">Login</span>
-          </Link>
-        )}
       </nav>
 
       {/* Spacer for desktop sidebar */}
