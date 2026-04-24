@@ -106,15 +106,15 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="py-20 px-6">
+      <section className="py-20 px-6 bg-slate-50">
         <div className="max-w-7xl mx-auto">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-40">
               <LoadingOutlined spin style={{ fontSize: 64 }} className="text-brand-600 mb-6" />
-              <p className="text-slate-500 font-bold text-xl uppercase tracking-widest">Loading Library...</p>
+              <p className="text-slate-400 font-bold text-xl uppercase tracking-widest">Loading Library...</p>
             </div>
           ) : templates.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {templates.map((template, idx) => (
                 <motion.div
                   key={template.id}
@@ -123,54 +123,60 @@ export default function LandingPage() {
                   viewport={{ once: true }}
                   transition={{ delay: idx * 0.05 }}
                 >
-                  <Card hoverable className="bg-white rounded-[2.5rem] border border-slate-100 p-10 hover:shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] transition-all group flex flex-col relative" bodyStyle={{ padding: 0 }}>
-                    <div className="flex justify-between items-start mb-8">
-                      <div className="bg-brand-50 p-4 rounded-3xl group-hover:bg-brand-600 transition-all transform group-hover:rotate-6">
-                        <FileTextOutlined className="w-8 h-8 text-brand-600 group-hover:text-white transition-colors" />
+                  <Card hoverable className="bg-white rounded-3xl border-0 shadow-lg hover:shadow-2xl hover:shadow-brand-100/50 transition-all duration-300 group flex flex-col relative overflow-hidden" bodyStyle={{ padding: 0 }}>
+                    <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-brand-500 to-brand-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    
+                    <div className="p-8 pb-6">
+                      <div className="flex justify-between items-start mb-6">
+                        <div className="bg-gradient-to-br from-brand-50 to-brand-100/50 p-4 rounded-2xl group-hover:scale-110 transition-transform duration-300">
+                          <FileTextOutlined className="w-7 h-7 text-brand-600" />
+                        </div>
+                        <div className="flex flex-col gap-2 items-end">
+                          <Tag color="default" className="text-xs font-semibold">{template.language}</Tag>
+                          <Tag color="blue" className="text-xs font-semibold">{template.category}</Tag>
+                        </div>
                       </div>
-                      <div className="flex flex-col gap-2 items-end">
-                        <Tag color="default">{template.language}</Tag>
-                        <Tag color="blue">{template.category}</Tag>
-                      </div>
+                      
+                      <h3 className="text-xl font-bold text-slate-800 mb-3 group-hover:text-brand-600 transition-colors duration-300">
+                        {template.title}
+                      </h3>
+                      <p className="text-slate-500 mb-6 line-clamp-2 text-sm leading-relaxed">
+                        {template.description}
+                      </p>
                     </div>
                     
-                    <h3 className="text-3xl font-extrabold text-slate-900 mb-4 group-hover:text-brand-600 transition-colors tracking-tight">
-                      {template.title}
-                    </h3>
-                    <p className="text-slate-500 mb-10 line-clamp-3 leading-relaxed font-medium">
-                      {template.description}
-                    </p>
-                    
-                    <div className="grid grid-cols-1 gap-4 mt-auto">
-                      <Button 
-                        size="large"
-                        block
-                        icon={<EyeOutlined />}
-                        onClick={() => handleAction(() => setPreviewTemplate(template))}
-                      >
-                        Quick Preview
-                      </Button>
-                      <Button 
-                        type="primary"
-                        size="large"
-                        block
-                        icon={<EditOutlined />}
-                        onClick={() => handleAction(() => navigate(`/contracts/new/${template.id}`))}
-                      >
-                        Customize Now
-                      </Button>
+                    <div className="mt-auto px-8 pb-8 pt-2">
+                      <div className="grid grid-cols-2 gap-3">
+                        <Button 
+                          size="middle"
+                          icon={<EyeOutlined className="text-sm" />}
+                          onClick={() => handleAction(() => setPreviewTemplate(template))}
+                          className="rounded-xl"
+                        >
+                          Preview
+                        </Button>
+                        <Button 
+                          type="primary"
+                          size="middle"
+                          icon={<EditOutlined className="text-sm" />}
+                          onClick={() => handleAction(() => navigate(`/contracts/new/${template.id}`))}
+                          className="rounded-xl bg-brand-600 hover:bg-brand-700"
+                        >
+                          Create
+                        </Button>
+                      </div>
                     </div>
                   </Card>
                 </motion.div>
               ))}
             </div>
           ) : (
-            <Card className="bg-white rounded-[4rem] p-32 text-center border border-slate-100 shadow-inner">
-              <div className="bg-slate-50 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-8">
-                <FileTextOutlined className="w-12 h-12 text-slate-200" />
+            <Card className="bg-white rounded-3xl p-16 text-center border-0 shadow-lg">
+              <div className="bg-slate-100 w-24 h-24 rounded-2xl flex items-center justify-center mx-auto mb-8">
+                <FileTextOutlined className="w-12 h-12 text-slate-300" />
               </div>
-              <h3 className="text-3xl font-black text-slate-900 mb-4 tracking-tight">No documents found.</h3>
-              <p className="text-slate-500 text-lg font-medium">Try searching for a different keyword or category.</p>
+              <h3 className="text-2xl font-bold text-slate-800 mb-3">No documents found.</h3>
+              <p className="text-slate-500">Try searching for a different keyword or category.</p>
             </Card>
           )}
         </div>

@@ -214,7 +214,7 @@ export default function Dashboard() {
                   title={<span className="text-slate-500 font-bold uppercase text-xs">Signed</span>} 
                   value={signedCount} 
                   prefix={<CheckCircleOutlined className="text-teal-600" />}
-                  valueStyle={{ color: '#0d9488' }}
+                  styles={{ content: { color: '#0d9488' } }}
                 />
               </Card>
             </motion.div>
@@ -228,7 +228,7 @@ export default function Dashboard() {
                   title={<span className="text-slate-500 font-bold uppercase text-xs">Drafts</span>} 
                   value={draftCount} 
                   prefix={<ClockCircleOutlined className="text-amber-600" />}
-                  valueStyle={{ color: '#d97706' }}
+                  styles={{ content: { color: '#d97706' } }}
                 />
               </Card>
             </motion.div>

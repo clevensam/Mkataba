@@ -5,22 +5,20 @@ import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { Button, Card, Tag, message } from "antd";
 import { 
   FileTextOutlined, 
-  EyeOutlined, 
-  EditOutlined, 
   SaveOutlined, 
   LoadingOutlined,
   AlertOutlined,
-  CheckCircleOutlined,
   DownloadOutlined,
   ShareAltOutlined
 } from "@ant-design/icons";
 import { motion } from "motion/react";
 import { generateContractPDF } from "../lib/pdfGenerator";
+import type { Template, Contract, Field } from "../types/contract";
 
 export default function SharedContractPage() {
   const { id } = useParams();
-  const [contract, setContract] = useState<any>(null);
-  const [template, setTemplate] = useState<any>(null);
+  const [contract, setContract] = useState<Contract | null>(null);
+  const [template, setTemplate] = useState<Template | null>(null);
   const [filledData, setFilledData] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -29,6 +27,15 @@ export default function SharedContractPage() {
   const [signaturePosition, setSignaturePosition] = useState({ x: 0, y: 0 });
   const [isPrintingBlank, setIsPrintingBlank] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const getFields = (): Field[] => {
+    if (!template?.fields) return [];
+    try {
+      return JSON.parse(template.fields);
+    } catch {
+      return [];
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -122,7 +129,7 @@ export default function SharedContractPage() {
     if (!template) return null;
     
     let html = template.htmlContent;
-    const fields = JSON.parse(template.fields);
+    const fields = getFields();
     const parts = html.split(/\{\{(.*?)\}\}/);
     
     return (
@@ -131,8 +138,8 @@ export default function SharedContractPage() {
           if (i % 2 === 0) {
             return <div key={i} className="inline" dangerouslySetInnerHTML={{ __html: part }} />;
           } else {
-            const field = fields.find((f: any) => f.id === part);
-            if (!field) return <span key={i}>{{part}}</span>;
+            const field = fields.find((f) => f.id === part);
+            if (!field) return <span key={i}>{part}</span>;
             
             if (isPrintingBlank) {
               return (

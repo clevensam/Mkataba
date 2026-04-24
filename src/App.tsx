@@ -20,6 +20,7 @@ import ProfilePage from "./pages/ProfilePage";
 import Navbar from "./components/layout/Navbar";
 import Header from "./components/layout/Header";
 import Footer from "./components/layout/Footer";
+import ErrorBoundary from "./components/ui/ErrorBoundary";
 
 const queryClient = new QueryClient();
 
@@ -54,30 +55,25 @@ export default function App() {
           <div className="flex flex-col md:flex-row flex-grow">
             <Navbar />
             <main className="flex-grow pb-20 md:pb-0">
-              <Routes>
+<Routes>
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
                 <Route 
-                  path="/" 
-                  element={user ? <Navigate to="/dashboard" replace /> : <LandingPage />} 
+                  path="/templates" 
+                  element={user ? <TemplatesPage /> : <Navigate to="/login" replace />} 
                 />
                 <Route 
-                  path="/login" 
-                  element={user ? <Navigate to="/dashboard" replace /> : <LoginPage />} 
+                  path="/templates/:id" 
+                  element={user ? <TemplateDetail /> : <Navigate to="/login" replace />} 
                 />
-                <Route 
-                  path="/register" 
-                  element={user ? <Navigate to="/dashboard" replace /> : <RegisterPage />} 
-                />
-                <Route path="/templates" element={<TemplatesPage />} />
-                <Route path="/templates/:id" element={<TemplateDetail />} />
-                
-                {/* Protected Routes */}
                 <Route 
                   path="/dashboard" 
-                  element={user ? <Dashboard /> : <Navigate to="/login" replace />} 
+                  element={user ? <ErrorBoundary><Dashboard /></ErrorBoundary> : <Navigate to="/login" replace />} 
                 />
                 <Route 
                   path="/my-contracts" 
-                  element={user ? <MyContractsPage /> : <Navigate to="/login" replace />} 
+                  element={user ? <ErrorBoundary><MyContractsPage /></ErrorBoundary> : <Navigate to="/login" replace />} 
                 />
                 <Route 
                   path="/profile" 
@@ -85,13 +81,13 @@ export default function App() {
                 />
                 <Route 
                   path="/contracts/new/:templateId" 
-                  element={user ? <ContractEditor /> : <Navigate to="/login" replace />} 
+                  element={user ? <ErrorBoundary><ContractEditor /></ErrorBoundary> : <Navigate to="/login" replace />} 
                 />
                 <Route 
                   path="/contracts/:id/edit" 
-                  element={user ? <ContractEditor /> : <Navigate to="/login" replace />} 
+                  element={user ? <ErrorBoundary><ContractEditor /></ErrorBoundary> : <Navigate to="/login" replace />} 
                 />
-                <Route path="/contracts/share/:id" element={<SharedContractPage />} />
+                <Route path="/contracts/share/:id" element={<ErrorBoundary><SharedContractPage /></ErrorBoundary>} />
                 
                 {/* Admin Routes */}
                 <Route path="/admin" element={<AdminDashboard />} />

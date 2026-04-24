@@ -1,6 +1,6 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { ConfigProvider, message } from 'antd';
+import { ConfigProvider, App as AntApp, message } from 'antd';
 import App from './App.tsx';
 import './index.css';
 
@@ -38,7 +38,9 @@ const theme = {
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ConfigProvider theme={theme}>
-      <App />
+      <AntApp>
+        <App />
+      </AntApp>
     </ConfigProvider>
   </StrictMode>,
 );

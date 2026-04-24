@@ -18,19 +18,20 @@ import {
   RightOutlined,
   LoadingOutlined
 } from "@ant-design/icons";
-import { motion, AnimatePresence } from "motion/react";
+import { motion } from "motion/react";
 import SignaturePadComponent from "../components/ui/SignaturePad";
 import { generateContractPDF } from "../lib/pdfGenerator";
+import type { Template, Contract, Field } from "../types/contract";
 
 export default function ContractEditor() {
   const { templateId, id } = useParams();
   const navigate = useNavigate();
-  const [template, setTemplate] = useState<any>(null);
-  const [contract, setContract] = useState<any>(null);
+  const [template, setTemplate] = useState<Template | null>(null);
+  const [contract, setContract] = useState<Contract | null>(null);
   const [filledData, setFilledData] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState(auth.currentUser);
   const [currentStep, setCurrentStep] = useState(1);
   const [showSignature, setShowSignature] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
@@ -46,6 +47,30 @@ export default function ContractEditor() {
     { id: 2, name: "Review Preview", icon: EyeOutlined },
     { id: 3, name: "Sign & Finalize", icon: CheckCircleOutlined },
   ];
+
+  const getFields = (): Field[] => {
+    if (!template?.fields) return [];
+    try {
+      return JSON.parse(template.fields);
+    } catch {
+      return [];
+    }
+  };
+
+  const validateRequiredFields = (): { valid: boolean; missing: string[] } => {
+    const fields = getFields();
+    const requiredFields = fields.filter(f => f.required);
+    const missing: string[] = [];
+    
+    requiredFields.forEach(field => {
+      const value = filledData[field.id];
+      if (!value || (typeof value === "string" && !value.trim())) {
+        missing.push(field.label);
+      }
+    });
+    
+    return { valid: missing.length === 0, missing };
+  };
 
   const handleDownload = async () => {
     if (!template) return;
@@ -153,7 +178,7 @@ export default function ContractEditor() {
     if (!template) return null;
     
     let html = template.htmlContent;
-    const fields = JSON.parse(template.fields);
+    const fields = getFields();
     const parts = html.split(/\{\{(.*?)\}\}/);
     
     return (
@@ -162,8 +187,8 @@ export default function ContractEditor() {
           if (i % 2 === 0) {
             return <div key={i} className="inline" dangerouslySetInnerHTML={{ __html: part }} />;
           } else {
-            const field = fields.find((f: any) => f.id === part);
-            if (!field) return <span key={i}>{{part}}</span>;
+            const field = fields.find((f) => f.id === part);
+            if (!field) return <span key={i}>{part}</span>;
             
             if (isPrintingBlank) {
               return (
@@ -321,7 +346,7 @@ export default function ContractEditor() {
             current={currentStep - 1}
             items={steps.map((step) => ({
               title: step.name,
-              icon: currentStep > step.id ? <CheckCircleOutlined /> : step.icon,
+              icon: currentStep > step.id ? <CheckCircleOutlined /> : undefined,
             }))}
           />
         </div>
@@ -389,7 +414,16 @@ export default function ContractEditor() {
             {currentStep < 3 && (
               <Button
                 type="primary"
-                onClick={() => setCurrentStep(prev => Math.min(3, prev + 1))}
+                onClick={() => {
+                  if (currentStep === 1) {
+                    const { valid, missing } = validateRequiredFields();
+                    if (!valid) {
+                      message.error(`Please fill in required fields: ${missing.join(", ")}`);
+                      return;
+                    }
+                  }
+                  setCurrentStep(prev => Math.min(3, prev + 1));
+                }}
                 disabled={currentStep === 1 && completionPercent === 0}
                 icon={<RightOutlined />}
                 iconPosition="end"
@@ -433,7 +467,7 @@ export default function ContractEditor() {
                     { value: "edit", label: "Can Edit" },
                   ]}
                 />
-              </div>
+</div>
 
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 ml-1">Share Link</label>
