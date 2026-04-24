@@ -3,27 +3,24 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { db, auth } from "../firebase";
 import { doc, getDoc, collection, addDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
+import { Button, Modal, Steps, Input, Switch, Select, message } from "antd";
 import { 
-  ArrowLeft, 
-  Save, 
-  Download, 
-  PenTool, 
-  CheckCircle2, 
-  AlertCircle,
-  Loader2,
-  Eye,
-  Edit3,
-  FileText,
-  Share2,
-  Copy,
-  ExternalLink,
-  X,
-  ChevronRight
-} from "lucide-react";
+  ArrowLeftOutlined, 
+  SaveOutlined, 
+  DownloadOutlined, 
+  CheckCircleOutlined,
+  EyeOutlined,
+  EditOutlined,
+  FileTextOutlined,
+  ShareAltOutlined,
+  CopyOutlined,
+  CloseOutlined,
+  RightOutlined,
+  LoadingOutlined
+} from "@ant-design/icons";
 import { motion, AnimatePresence } from "motion/react";
 import SignaturePadComponent from "../components/ui/SignaturePad";
-
-import { generateContractPDF, downloadBlob } from "../lib/pdfGenerator";
+import { generateContractPDF } from "../lib/pdfGenerator";
 
 export default function ContractEditor() {
   const { templateId, id } = useParams();
@@ -34,7 +31,7 @@ export default function ContractEditor() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [user, setUser] = useState<any>(null);
-  const [currentStep, setCurrentStep] = useState(1); // 1: Edit, 2: Preview, 3: Finalize
+  const [currentStep, setCurrentStep] = useState(1);
   const [showSignature, setShowSignature] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [sharingEnabled, setSharingEnabled] = useState(false);
@@ -45,17 +42,19 @@ export default function ContractEditor() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const steps = [
-    { id: 1, name: "Edit Details", icon: Edit3 },
-    { id: 2, name: "Review Preview", icon: Eye },
-    { id: 3, name: "Sign & Finalize", icon: PenTool },
+    { id: 1, name: "Edit Details", icon: EditOutlined },
+    { id: 2, name: "Review Preview", icon: EyeOutlined },
+    { id: 3, name: "Sign & Finalize", icon: CheckCircleOutlined },
   ];
 
   const handleDownload = async () => {
     if (!template) return;
     try {
       await generateContractPDF("contract-document", `${template.title.replace(/\s+/g, '_')}_Contract.pdf`);
+      message.success("Contract downloaded successfully");
     } catch (error) {
       console.error("Error generating PDF:", error);
+      message.error("Failed to download contract");
     }
   };
 
@@ -72,7 +71,6 @@ export default function ContractEditor() {
       setLoading(true);
       try {
         if (id) {
-          // Loading existing contract
           const contractDoc = await getDoc(doc(db, "contracts", id));
           if (contractDoc.exists()) {
             const data = contractDoc.data();
@@ -83,18 +81,15 @@ export default function ContractEditor() {
             setSharingEnabled(data.sharing?.enabled || false);
             setSharingPermission(data.sharing?.permission || "view");
             
-            // Load template for this contract
             const templateDoc = await getDoc(doc(db, "templates", data.templateId));
             if (templateDoc.exists()) {
               setTemplate({ id: templateDoc.id, ...templateDoc.data() });
             }
           }
         } else if (templateId) {
-          // New contract from template
           const templateDoc = await getDoc(doc(db, "templates", templateId));
           if (templateDoc.exists()) {
             setTemplate({ id: templateDoc.id, ...templateDoc.data() });
-            // Initialize filledData with empty strings for all fields
             const fields = JSON.parse(templateDoc.data().fields);
             const initialData: Record<string, string> = {};
             fields.forEach((f: any) => initialData[f.id] = "");
@@ -103,6 +98,7 @@ export default function ContractEditor() {
         }
       } catch (error) {
         console.error("Error fetching data:", error);
+        message.error("Failed to load contract data");
       } finally {
         setLoading(false);
       }
@@ -135,16 +131,19 @@ export default function ContractEditor() {
 
       if (contract?.id) {
         await updateDoc(doc(db, "contracts", contract.id), data);
+        message.success("Contract saved successfully");
       } else {
         const newDoc = await addDoc(collection(db, "contracts"), {
           ...data,
           createdAt: serverTimestamp(),
         });
         setContract({ id: newDoc.id, ...data });
+        message.success("Contract created successfully");
         navigate(`/contracts/${newDoc.id}/edit`, { replace: true });
       }
     } catch (error) {
       console.error("Error saving contract:", error);
+      message.error("Failed to save contract");
     } finally {
       setSaving(false);
     }
@@ -155,15 +154,12 @@ export default function ContractEditor() {
     
     let html = template.htmlContent;
     const fields = JSON.parse(template.fields);
-    
-    // Split HTML by placeholders to insert inputs
     const parts = html.split(/\{\{(.*?)\}\}/);
     
     return (
       <div className="prose prose-slate max-w-none font-serif leading-relaxed text-lg relative">
         {parts.map((part: string, i: number) => {
           if (i % 2 === 0) {
-            // This part is HTML content from the template
             return <div key={i} className="inline" dangerouslySetInnerHTML={{ __html: part }} />;
           } else {
             const field = fields.find((f: any) => f.id === part);
@@ -221,7 +217,7 @@ export default function ContractEditor() {
                 className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:bg-red-600"
                 title="Remove signature"
               >
-                <X className="w-3 h-3" />
+                <CloseOutlined className="w-3 h-3" />
               </button>
               <div className="absolute -top-8 left-0 bg-brand-600 text-white text-[10px] font-bold px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                 Drag to position signature
@@ -244,6 +240,7 @@ export default function ContractEditor() {
       });
     } catch (error) {
       console.error("Error toggling sharing:", error);
+      message.error("Failed to update sharing settings");
     }
   };
 
@@ -257,6 +254,7 @@ export default function ContractEditor() {
       });
     } catch (error) {
       console.error("Error updating permission:", error);
+      message.error("Failed to update permission");
     }
   };
 
@@ -264,13 +262,13 @@ export default function ContractEditor() {
 
   const copyShareUrl = () => {
     navigator.clipboard.writeText(shareUrl);
-    alert("Link copied to clipboard!");
+    message.success("Link copied to clipboard!");
   };
 
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-80px)]">
-        <Loader2 className="w-10 h-10 text-brand-600 animate-spin mb-4" />
+        <LoadingOutlined spin style={{ fontSize: 40 }} className="text-brand-600 mb-4" />
         <p className="text-slate-500">Loading editor...</p>
       </div>
     );
@@ -282,13 +280,10 @@ export default function ContractEditor() {
 
   return (
     <div className="bg-slate-50 min-h-screen pb-20">
-      {/* Editor Header */}
       <div className="glass sticky top-0 z-40 px-6 py-4 border-b border-slate-200">
         <div className="w-full flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <button onClick={() => navigate(-1)} className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
-              <ArrowLeft className="w-5 h-5 text-slate-600" />
-            </button>
+            <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)} />
             <div>
               <h1 className="text-2xl font-bold text-slate-900 tracking-tight">{template?.title}</h1>
               <div className="mt-1 flex items-center gap-2 text-[10px] font-bold">
@@ -301,63 +296,38 @@ export default function ContractEditor() {
             </div>
           </div>
 
-          {/* Stepper (Removed from header) */}
           <div className="flex items-center gap-3">
-            <button
+            <Button
+              icon={<ShareAltOutlined />}
               onClick={() => setShowShareModal(true)}
               disabled={!contract?.id}
-              className="p-2 text-slate-400 hover:text-brand-600 transition-all"
               title={!contract?.id ? "Save draft first to share" : "Share contract"}
-            >
-              <Share2 className="w-5 h-5" />
-            </button>
+            />
 
-            <button
+            <Button
+              icon={saving ? <LoadingOutlined /> : <SaveOutlined />}
               onClick={handleSave}
-              disabled={saving}
-              className="btn-secondary flex items-center gap-2 px-6 py-2.5 shadow-sm"
+              loading={saving}
             >
-              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
               <span className="font-bold">Save Draft</span>
-            </button>
+            </Button>
           </div>
         </div>
       </div>
 
-      {/* Stepper Section (New) */}
       <div className="py-8 px-6">
-        <div className="max-w-4xl mx-auto flex items-center justify-center gap-4">
-          {steps.map((step, idx) => (
-            <div key={step.id} className="flex items-center">
-              <button
-                onClick={() => {
-                  if (step.id < currentStep || (step.id === 2 && completionPercent > 0) || (step.id === 3 && completionPercent === 100)) {
-                    setCurrentStep(step.id);
-                  }
-                }}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold transition-all ${
-                  currentStep === step.id 
-                    ? "bg-brand-600 text-white shadow-2xl shadow-brand-400/40 ring-4 ring-brand-50" 
-                    : "text-slate-400"
-                }`}
-              >
-                <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${
-                  currentStep === step.id ? "bg-white/20" : "bg-slate-200 text-slate-500"
-                }`}>
-                  {currentStep > step.id ? <CheckCircle2 className="w-3 h-3" /> : step.id}
-                </div>
-                {step.name}
-              </button>
-              {idx < steps.length - 1 && (
-                <div className="w-16 h-[1px] bg-slate-200 mx-2" />
-              )}
-            </div>
-          ))}
+        <div className="max-w-4xl mx-auto">
+          <Steps
+            current={currentStep - 1}
+            items={steps.map((step) => ({
+              title: step.name,
+              icon: currentStep > step.id ? <CheckCircleOutlined /> : step.icon,
+            }))}
+          />
         </div>
       </div>
 
       <div className="max-w-4xl mx-auto px-6 mt-8 space-y-8">
-        {/* Main Document Area */}
         <motion.div 
           layout
           ref={containerRef}
@@ -367,213 +337,155 @@ export default function ContractEditor() {
           {renderContent()}
         </motion.div>
 
-        {/* Navigation Buttons */}
         <div className="flex items-center justify-between bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-          <button
+          <Button
             onClick={() => setCurrentStep(prev => Math.max(1, prev - 1))}
             disabled={currentStep === 1}
-            className="btn-secondary flex items-center gap-2 disabled:opacity-0"
+            icon={<ArrowLeftOutlined />}
           >
-            <ArrowLeft className="w-4 h-4" /> Previous Step
-          </button>
+            Previous Step
+          </Button>
 
           <div className="flex items-center gap-3">
             {currentStep === 3 && (
               <>
-                <button
+                <Button
+                  icon={<FileTextOutlined />}
                   onClick={async () => {
                     if (!template) return;
                     setIsPrintingBlank(true);
-                    // Small delay to ensure state update renders underscores
                     setTimeout(async () => {
                       try {
                         await generateContractPDF("contract-document", `${template.title.replace(/\s+/g, '_')}_Blank.pdf`);
+                        message.success("Blank contract downloaded");
                       } catch (error) {
                         console.error("Error generating blank PDF:", error);
+                        message.error("Failed to download blank contract");
                       } finally {
                         setIsPrintingBlank(false);
                       }
                     }, 100);
                   }}
-                  className="btn-secondary flex items-center gap-2"
-                  title="Download an unfilled copy"
                 >
-                  <FileText className="w-4 h-4" /> Download Blank
-                </button>
-                <button
+                  Download Blank
+                </Button>
+                <Button
+                  icon={<DownloadOutlined />}
                   onClick={handleDownload}
-                  className="btn-secondary flex items-center gap-2"
                 >
-                  <Download className="w-4 h-4" /> Download PDF
-                </button>
-                <button
+                  Download PDF
+                </Button>
+                <Button
+                  type="primary"
+                  icon={<CheckCircleOutlined />}
                   onClick={() => setShowSignature(true)}
                   disabled={completionPercent < 100 || contract?.status === "signed"}
-                  className="btn-primary flex items-center gap-2"
                 >
-                  <PenTool className="w-4 h-4" />
                   {contract?.status === "signed" ? "Signed" : "Sign Contract"}
-                </button>
+                </Button>
               </>
             )}
             
             {currentStep < 3 && (
-              <button
+              <Button
+                type="primary"
                 onClick={() => setCurrentStep(prev => Math.min(3, prev + 1))}
                 disabled={currentStep === 1 && completionPercent === 0}
-                className="btn-primary flex items-center gap-2 px-8"
+                icon={<RightOutlined />}
+                iconPosition="end"
               >
                 {currentStep === 1 ? "Preview Document" : "Proceed to Signing"}
-                <ChevronRight className="w-4 h-4" />
-              </button>
+              </Button>
             )}
           </div>
         </div>
       </div>
 
-      {/* Share Modal */}
-      <AnimatePresence>
-        {showShareModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowShareModal(false)}
-              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+      <Modal
+        title="Share Contract"
+        open={showShareModal}
+        onCancel={() => setShowShareModal(false)}
+        footer={null}
+        width={500}
+      >
+        <div className="space-y-6">
+          <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+            <div>
+              <p className="font-bold text-slate-900">Enable Link Sharing</p>
+              <p className="text-sm text-slate-500">Anyone with the link can access</p>
+            </div>
+            <Switch 
+              checked={sharingEnabled} 
+              onChange={handleToggleSharing}
             />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="relative w-full max-w-md"
-            >
-              <div className="bg-white rounded-3xl p-8 shadow-2xl">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold text-slate-900">Share Contract</h2>
-                  <button onClick={() => setShowShareModal(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
-                    <X className="w-6 h-6" />
-                  </button>
-                </div>
-
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                    <div>
-                      <p className="font-bold text-slate-900">Enable Link Sharing</p>
-                      <p className="text-sm text-slate-500">Anyone with the link can access</p>
-                    </div>
-                    <button 
-                      onClick={handleToggleSharing}
-                      className={`w-12 h-6 rounded-full transition-colors relative ${sharingEnabled ? 'bg-brand-600' : 'bg-slate-300'}`}
-                    >
-                      <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${sharingEnabled ? 'left-7' : 'left-1'}`} />
-                    </button>
-                  </div>
-
-                  {sharingEnabled && (
-                    <motion.div 
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      className="space-y-4"
-                    >
-                      <div>
-                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 ml-1">Permissions</label>
-                        <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-xl">
-                          <button 
-                            onClick={() => handleUpdatePermission("view")}
-                            className={`py-2 rounded-lg text-sm font-bold transition-all ${sharingPermission === "view" ? 'bg-white text-brand-600 shadow-sm' : 'text-slate-500'}`}
-                          >
-                            View Only
-                          </button>
-                          <button 
-                            onClick={() => handleUpdatePermission("edit")}
-                            className={`py-2 rounded-lg text-sm font-bold transition-all ${sharingPermission === "edit" ? 'bg-white text-brand-600 shadow-sm' : 'text-slate-500'}`}
-                          >
-                            Can Edit
-                          </button>
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 ml-1">Share Link</label>
-                        <div className="flex gap-2">
-                          <input 
-                            readOnly 
-                            value={shareUrl}
-                            className="flex-grow px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-600 outline-none"
-                          />
-                          <button 
-                            onClick={copyShareUrl}
-                            className="p-2 bg-brand-50 text-brand-600 rounded-xl hover:bg-brand-100 transition-colors"
-                          >
-                            <Copy className="w-5 h-5" />
-                          </button>
-                        </div>
-                      </div>
-
-                      {contract?.id && (
-                        <a 
-                          href={shareUrl} 
-                          target="_blank" 
-                          rel="noreferrer"
-                          className="flex items-center justify-center gap-2 text-sm font-bold text-brand-600 hover:underline pt-2"
-                        >
-                          <ExternalLink className="w-4 h-4" />
-                          Open shared link
-                        </a>
-                      )}
-                    </motion.div>
-                  )}
-                </div>
-              </div>
-            </motion.div>
           </div>
-        )}
-      </AnimatePresence>
 
-      {/* Signature Modal */}
-      <AnimatePresence>
-        {showSignature && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowSignature(false)}
-              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="relative w-full max-w-lg"
-            >
-              <div className="bg-white rounded-3xl p-6 shadow-2xl">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold text-slate-900">Sign Contract</h2>
-                  <button onClick={() => setShowSignature(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
-                    <X className="w-6 h-6" />
-                  </button>
-                </div>
-                
-                <p className="text-slate-600 mb-8">
-                  By signing this document, you agree to the terms and conditions stated above.
-                </p>
-
-                <SignaturePadComponent 
-                  onConfirm={(dataUrl) => {
-                    setSignatureData(dataUrl);
-                    setShowSignature(false);
-                    // Automatically save after signing
-                    setTimeout(handleSave, 100);
-                  }}
-                  onClear={() => setSignatureData(null)}
+          {sharingEnabled && (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 ml-1">Permissions</label>
+                <Select
+                  value={sharingPermission}
+                  onChange={handleUpdatePermission}
+                  style={{ width: '100%' }}
+                  options={[
+                    { value: "view", label: "View Only" },
+                    { value: "edit", label: "Can Edit" },
+                  ]}
                 />
               </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 ml-1">Share Link</label>
+                <Input
+                  readOnly 
+                  value={shareUrl}
+                  suffix={
+                    <Button 
+                      type="text" 
+                      icon={<CopyOutlined />}
+                      onClick={copyShareUrl}
+                    />
+                  }
+                />
+              </div>
+
+              {contract?.id && (
+                <a 
+                  href={shareUrl} 
+                  target="_blank" 
+                  rel="noreferrer"
+                  className="flex items-center justify-center gap-2 text-sm font-bold text-brand-600 hover:underline pt-2"
+                >
+                  <ShareAltOutlined />
+                  Open shared link
+                </a>
+              )}
+            </div>
+          )}
+        </div>
+      </Modal>
+
+      <Modal
+        title="Sign Contract"
+        open={showSignature}
+        onCancel={() => setShowSignature(false)}
+        footer={null}
+        width={600}
+      >
+        <p className="text-slate-600 mb-8">
+          By signing this document, you agree to the terms and conditions stated above.
+        </p>
+
+        <SignaturePadComponent 
+          onConfirm={(dataUrl) => {
+            setSignatureData(dataUrl);
+            setShowSignature(false);
+            setTimeout(handleSave, 100);
+          }}
+          onClear={() => setSignatureData(null)}
+        />
+      </Modal>
     </div>
   );
 }

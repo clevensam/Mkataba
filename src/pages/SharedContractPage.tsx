@@ -2,19 +2,20 @@ import React, { useState, useEffect, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { db } from "../firebase";
 import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { Button, Card, Tag, message } from "antd";
 import { 
-  FileText, 
-  Eye, 
-  Edit3, 
-  Save, 
-  Loader2, 
-  AlertCircle,
-  CheckCircle2,
-  Download,
-  Share2
-} from "lucide-react";
+  FileTextOutlined, 
+  EyeOutlined, 
+  EditOutlined, 
+  SaveOutlined, 
+  LoadingOutlined,
+  AlertOutlined,
+  CheckCircleOutlined,
+  DownloadOutlined,
+  ShareAltOutlined
+} from "@ant-design/icons";
 import { motion } from "motion/react";
-import { generateContractPDF, downloadBlob } from "../lib/pdfGenerator";
+import { generateContractPDF } from "../lib/pdfGenerator";
 
 export default function SharedContractPage() {
   const { id } = useParams();
@@ -81,10 +82,10 @@ export default function SharedContractPage() {
         signaturePosition: signaturePosition,
         updatedAt: serverTimestamp(),
       });
-      alert("Changes saved successfully!");
+      message.success("Changes saved successfully!");
     } catch (err) {
       console.error("Error saving shared contract:", err);
-      alert("Failed to save changes. You may not have edit permissions.");
+      message.error("Failed to save changes. You may not have edit permissions.");
     } finally {
       setSaving(false);
     }
@@ -94,8 +95,10 @@ export default function SharedContractPage() {
     if (!template) return;
     try {
       await generateContractPDF("contract-document", `${template.title.replace(/\s+/g, '_')}_Shared.pdf`);
+      message.success("Contract downloaded successfully");
     } catch (err) {
       console.error("Error generating PDF:", err);
+      message.error("Failed to download contract");
     }
   };
 
@@ -105,8 +108,10 @@ export default function SharedContractPage() {
     setTimeout(async () => {
       try {
         await generateContractPDF("contract-document", `${template.title.replace(/\s+/g, '_')}_Blank.pdf`);
+        message.success("Blank contract downloaded");
       } catch (err) {
         console.error("Error generating blank PDF:", err);
+        message.error("Failed to download blank contract");
       } finally {
         setIsPrintingBlank(false);
       }
@@ -188,7 +193,7 @@ export default function SharedContractPage() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50">
-        <Loader2 className="w-10 h-10 text-brand-600 animate-spin mb-4" />
+        <LoadingOutlined spin style={{ fontSize: 40 }} className="text-brand-600 mb-4" />
         <p className="text-slate-500">Loading shared contract...</p>
       </div>
     );
@@ -197,14 +202,18 @@ export default function SharedContractPage() {
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50 p-6">
-        <div className="bg-white p-8 rounded-3xl shadow-xl max-w-md w-full text-center border border-slate-100">
+        <Card className="max-w-md w-full text-center">
           <div className="bg-red-50 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <AlertCircle className="w-8 h-8 text-red-500" />
+            <AlertOutlined className="w-8 h-8 text-red-500" />
           </div>
           <h1 className="text-2xl font-bold text-slate-900 mb-2">Access Denied</h1>
           <p className="text-slate-600 mb-8">{error}</p>
-          <Link to="/" className="btn-primary w-full">Go to Homepage</Link>
-        </div>
+          <Link to="/">
+            <Button type="primary" block>
+              Go to Homepage
+            </Button>
+          </Link>
+        </Card>
       </div>
     );
   }
@@ -215,49 +224,44 @@ export default function SharedContractPage() {
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="bg-brand-100 p-2 rounded-lg">
-              <Share2 className="w-5 h-5 text-brand-600" />
+              <ShareAltOutlined className="w-5 h-5 text-brand-600" />
             </div>
             <div>
               <h1 className="text-xl font-bold text-slate-900">{template?.title}</h1>
               <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
-                <span className="px-2 py-0.5 rounded-full bg-brand-100 text-brand-700 uppercase tracking-wider">
+                <Tag color={contract?.sharing?.permission === "edit" ? "blue" : "default"}>
                   Shared {contract?.sharing?.permission === "edit" ? "Editor" : "Viewer"}
-                </span>
-                <span>•</span>
-                <span className={`px-2 py-0.5 rounded-full uppercase tracking-wider ${
-                  contract?.status === "signed" ? "bg-teal-100 text-teal-700" : "bg-slate-100 text-slate-600"
-                }`}>
+                </Tag>
+                <Tag color={contract?.status === "signed" ? "success" : "default"}>
                   {contract?.status}
-                </span>
+                </Tag>
               </div>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
             {contract?.sharing?.permission === "edit" && contract?.status === "draft" && (
-              <button
+              <Button
+                type="primary"
+                icon={saving ? <LoadingOutlined /> : <SaveOutlined />}
                 onClick={handleSave}
-                disabled={saving}
-                className="btn-primary flex items-center gap-2"
+                loading={saving}
               >
-                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                 Save Changes
-              </button>
+              </Button>
             )}
-            <button
+            <Button
+              icon={<FileTextOutlined />}
               onClick={handleDownloadBlank}
-              className="btn-secondary flex items-center gap-2"
             >
-              <FileText className="w-4 h-4" />
               Download Blank
-            </button>
-            <button
+            </Button>
+            <Button
+              icon={<DownloadOutlined />}
               onClick={handleDownload}
-              className="btn-secondary flex items-center gap-2"
             >
-              <Download className="w-4 h-4" />
               Download PDF
-            </button>
+            </Button>
           </div>
         </div>
       </div>

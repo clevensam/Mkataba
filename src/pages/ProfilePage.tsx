@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { auth, db } from "../firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
-import { Mail, Shield, Loader2, LogOut } from "lucide-react";
+import { Button } from "antd";
+import { MailOutlined, SafetyOutlined, LoadingOutlined, LogoutOutlined } from "@ant-design/icons";
 import { motion } from "motion/react";
 import { useNavigate } from "react-router-dom";
 
@@ -36,7 +37,7 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
-        <Loader2 className="w-10 h-10 text-brand-600 animate-spin" />
+        <LoadingOutlined spin style={{ fontSize: 40 }} className="text-brand-600" />
       </div>
     );
   }
@@ -50,7 +51,6 @@ export default function ProfilePage() {
         </header>
 
         <div className="grid grid-cols-1 gap-8">
-          {/* Profile Card */}
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -65,7 +65,7 @@ export default function ProfilePage() {
                 <p className="text-slate-500 mb-3">{user?.email}</p>
                 <div className="flex items-center justify-center md:justify-start gap-2">
                   <span className="px-3 py-1 bg-brand-50 text-brand-700 text-xs font-bold uppercase rounded-full flex items-center gap-1">
-                    <Shield className="w-3 h-3" /> {role || "User"}
+                    <SafetyOutlined /> {role || "User"}
                   </span>
                 </div>
               </div>
@@ -75,21 +75,21 @@ export default function ProfilePage() {
               <div className="space-y-1">
                 <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Email Address</p>
                 <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                  <Mail className="w-5 h-5 text-slate-400" />
+                  <MailOutlined className="text-slate-400" />
                   <p className="font-medium text-slate-900">{user?.email}</p>
                 </div>
               </div>
               <div className="space-y-1">
                 <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Account Role</p>
                 <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                  <Shield className="w-5 h-5 text-slate-400" />
+                  <SafetyOutlined className="text-slate-400" />
                   <p className="font-medium text-slate-900">{role || "Standard User"}</p>
                 </div>
               </div>
               <div className="space-y-1">
                 <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Member Since</p>
                 <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                  <Loader2 className="w-5 h-5 text-slate-400 shrink-0" />
+                  <LoadingOutlined className="text-slate-400 shrink-0" />
                   <p className="font-medium text-slate-900 truncate">
                     {user?.metadata?.creationTime ? new Date(user.metadata.creationTime).toLocaleDateString() : "N/A"}
                   </p>
@@ -98,12 +98,15 @@ export default function ProfilePage() {
             </div>
 
             <div className="mt-10 pt-10 border-t border-slate-100 hidden md:block">
-              <button 
+              <Button 
+                danger 
+                icon={<LogoutOutlined />} 
+                size="large" 
                 onClick={handleLogout}
-                className="flex items-center gap-3 px-8 py-4 bg-red-50 text-red-600 font-bold rounded-2xl hover:bg-red-100 transition-all"
+                className="flex items-center gap-3"
               >
-                <LogOut size={22} /> Sign Out of Account
-              </button>
+                Sign Out of Account
+              </Button>
             </div>
           </motion.div>
         </div>

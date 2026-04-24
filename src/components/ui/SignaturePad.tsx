@@ -1,6 +1,7 @@
 import { useRef, useEffect, useState } from "react";
 import SignaturePad from "signature_pad";
-import { Eraser, Check, Type, PenTool } from "lucide-react";
+import { Button, Input } from "antd";
+import { ScissorOutlined, CheckOutlined, FontSizeOutlined, EditOutlined } from "@ant-design/icons";
 
 interface Props {
   onConfirm: (dataUrl: string) => void;
@@ -49,8 +50,6 @@ export default function SignaturePadComponent({ onConfirm, onClear }: Props) {
       onConfirm(signaturePadRef.current?.toDataURL() || "");
     } else {
       if (!typedName.trim()) return;
-      // For typed signature, we'd ideally render to canvas, but for now we'll just use a styled text representation or a pre-rendered font
-      // A better way is to render the text to a hidden canvas and get dataURL
       const canvas = document.createElement("canvas");
       canvas.width = 400;
       canvas.height = 200;
@@ -77,7 +76,7 @@ export default function SignaturePadComponent({ onConfirm, onClear }: Props) {
             mode === "draw" ? "bg-brand-50 text-brand-600 border-b-2 border-brand-600" : "text-slate-500 hover:bg-slate-50"
           }`}
         >
-          <PenTool className="w-4 h-4" /> Draw Signature
+          <EditOutlined /> Draw Signature
         </button>
         <button
           onClick={() => setMode("type")}
@@ -85,7 +84,7 @@ export default function SignaturePadComponent({ onConfirm, onClear }: Props) {
             mode === "type" ? "bg-brand-50 text-brand-600 border-b-2 border-brand-600" : "text-slate-500 hover:bg-slate-50"
           }`}
         >
-          <Type className="w-4 h-4" /> Type Signature
+          <FontSizeOutlined /> Type Signature
         </button>
       </div>
 
@@ -100,30 +99,33 @@ export default function SignaturePadComponent({ onConfirm, onClear }: Props) {
           </div>
         ) : (
           <div className="space-y-4">
-            <input
-              type="text"
+            <Input
               placeholder="Type your full name"
               value={typedName}
               onChange={(e) => setTypedName(e.target.value)}
-              className="input-field text-2xl font-serif italic text-center py-8"
+              className="text-2xl font-serif italic text-center py-8"
+              style={{ textAlign: 'center', fontFamily: "'Playfair Display', serif", fontStyle: 'italic', fontSize: 24 }}
             />
             <p className="text-[10px] text-slate-400 text-center uppercase tracking-widest">Handwriting style applied</p>
           </div>
         )}
 
         <div className="flex gap-3 mt-4">
-          <button
+          <Button
+            icon={<ScissorOutlined />}
             onClick={handleClear}
-            className="btn-secondary flex-1 py-2.5 flex items-center justify-center gap-2 text-sm"
+            block
           >
-            <Eraser className="w-4 h-4" /> Clear
-          </button>
-          <button
+            Clear
+          </Button>
+          <Button
+            type="primary"
+            icon={<CheckOutlined />}
             onClick={handleConfirm}
-            className="btn-primary flex-1 py-2.5 flex items-center justify-center gap-2 text-sm"
+            block
           >
-            <Check className="w-4 h-4" /> Confirm Signature
-          </button>
+            Confirm Signature
+          </Button>
         </div>
       </div>
     </div>

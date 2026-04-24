@@ -2,22 +2,24 @@ import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
+import { Button, Select, message, Spin } from "antd";
 import { 
-  ArrowLeft, 
-  Save, 
-  Plus, 
-  Trash2, 
-  Type, 
-  Hash, 
-  Calendar, 
-  Layout, 
-  ChevronDown,
-  Info,
-  Loader2,
-  CheckCircle2,
-  X,
-  Eye
-} from "lucide-react";
+  ArrowLeftOutlined, 
+  SaveOutlined, 
+  PlusOutlined, 
+  DeleteOutlined, 
+  FontSizeOutlined, 
+  NumberOutlined, 
+  CalendarOutlined, 
+  AppstoreOutlined, 
+  DownOutlined, 
+  InfoCircleOutlined, 
+  LoadingOutlined, 
+  CheckCircleOutlined, 
+  CloseOutlined, 
+  EyeOutlined,
+  FileTextOutlined
+} from "@ant-design/icons";
 import { motion, AnimatePresence } from "motion/react";
 import { 
   getTemplate, 
@@ -82,7 +84,7 @@ export default function TemplateEditorPage() {
       setVisualFields(JSON.parse(template.fields));
     } catch (error) {
       console.error("Error fetching template:", error);
-      alert("Failed to load template.");
+      message.error("Failed to load template.");
       navigate("/admin/templates");
     } finally {
       setLoading(false);
@@ -91,7 +93,6 @@ export default function TemplateEditorPage() {
 
   const addField = (field?: { label: string, type: string, id: string }) => {
     if (field) {
-      // Check if ID already exists
       if (visualFields.some(f => f.id === field.id)) {
         const newId = `${field.id}_${Date.now().toString().slice(-4)}`;
         setVisualFields([...visualFields, { ...field, id: newId }]);
@@ -130,7 +131,7 @@ export default function TemplateEditorPage() {
 
   const handleSave = async () => {
     if (!formData.title) {
-      alert("Please enter a template title.");
+      message.warning("Please enter a template title.");
       return;
     }
     setSaving(true);
@@ -142,13 +143,15 @@ export default function TemplateEditorPage() {
 
       if (id) {
         await updateTemplate(id, finalData);
+        message.success("Template updated successfully");
       } else {
         await createTemplate(finalData);
+        message.success("Template created successfully");
       }
       navigate("/admin/templates");
     } catch (error) {
       console.error("Error saving template:", error);
-      alert("Failed to save template.");
+      message.error("Failed to save template.");
     } finally {
       setSaving(false);
     }
@@ -157,7 +160,7 @@ export default function TemplateEditorPage() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50">
-        <Loader2 className="w-10 h-10 text-brand-600 animate-spin mb-4" />
+        <LoadingOutlined spin style={{ fontSize: 40 }} className="text-brand-600 mb-4" />
         <p className="text-slate-500 font-medium">Loading template editor...</p>
       </div>
     );
@@ -175,12 +178,11 @@ export default function TemplateEditorPage() {
 
   return (
     <div className="bg-slate-50 min-h-screen pb-20">
-      {/* Header */}
       <div className="glass sticky top-0 z-50 px-6 py-4 border-b border-slate-200">
         <div className="w-full flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link to="/admin/templates" className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
-              <ArrowLeft className="w-5 h-5 text-slate-600" />
+            <Link to="/admin/templates">
+              <Button icon={<ArrowLeftOutlined />} />
             </Link>
             <div>
               <h1 className="text-xl font-bold text-slate-900">
@@ -192,36 +194,30 @@ export default function TemplateEditorPage() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <button 
+            <Button 
+              type={previewMode ? "primary" : "default"}
+              icon={<EyeOutlined />}
               onClick={() => setPreviewMode(!previewMode)}
-              className={`px-4 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${
-                previewMode 
-                ? 'bg-brand-600 text-white shadow-lg shadow-brand-200' 
-                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
-              }`}
             >
-              <Eye className="w-4 h-4" />
               {previewMode ? "Exit Preview" : "Live Preview"}
-            </button>
-            <button 
+            </Button>
+            <Button 
+              type="primary"
+              icon={saving ? <LoadingOutlined /> : <SaveOutlined />}
               onClick={handleSave}
-              disabled={saving}
-              className="btn-primary px-8 py-2.5 flex items-center gap-2"
+              loading={saving}
             >
-              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
               {id ? "Update Template" : "Save Template"}
-            </button>
+            </Button>
           </div>
         </div>
       </div>
 
       <div className="w-full px-6 mt-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Left Sidebar: Settings & Fields */}
         <div className="lg:col-span-4 space-y-6">
-          {/* Basic Info */}
           <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
             <h3 className="font-bold text-slate-900 flex items-center gap-2">
-              <Layout className="w-5 h-5 text-brand-600" />
+              <AppstoreOutlined className="text-brand-600" />
               Template Settings
             </h3>
             
@@ -239,27 +235,29 @@ export default function TemplateEditorPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 ml-1">Type</label>
-                <select 
+                <Select
                   value={formData.category}
-                  onChange={(e) => setFormData({...formData, category: e.target.value})}
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-transparent rounded-xl focus:bg-white focus:border-brand-500 outline-none transition-all text-sm appearance-none"
-                >
-                  <option value="rental">Rental</option>
-                  <option value="car_sale">Car Sale</option>
-                  <option value="employment">Employment</option>
-                  <option value="general">General</option>
-                </select>
+                  onChange={(value) => setFormData({...formData, category: value})}
+                  style={{ width: '100%' }}
+                  options={[
+                    { value: "rental", label: "Rental" },
+                    { value: "car_sale", label: "Car Sale" },
+                    { value: "employment", label: "Employment" },
+                    { value: "general", label: "General" },
+                  ]}
+                />
               </div>
               <div>
                 <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 ml-1">Language</label>
-                <select 
+                <Select
                   value={formData.language}
-                  onChange={(e) => setFormData({...formData, language: e.target.value})}
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-transparent rounded-xl focus:bg-white focus:border-brand-500 outline-none transition-all text-sm appearance-none"
-                >
-                  <option value="ENGLISH">English</option>
-                  <option value="SWAHILI">Swahili</option>
-                </select>
+                  onChange={(value) => setFormData({...formData, language: value})}
+                  style={{ width: '100%' }}
+                  options={[
+                    { value: "ENGLISH", label: "English" },
+                    { value: "SWAHILI", label: "Swahili" },
+                  ]}
+                />
               </div>
             </div>
 
@@ -275,20 +273,20 @@ export default function TemplateEditorPage() {
             </div>
           </div>
 
-          {/* Field Builder */}
           <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col max-h-[600px]">
             <div className="flex items-center justify-between mb-6">
               <h3 className="font-bold text-slate-900 flex items-center gap-2">
-                <Type className="w-5 h-5 text-brand-600" />
+                <FontSizeOutlined className="text-brand-600" />
                 Questions to Ask
               </h3>
               <div className="relative">
-                <button 
+                <Button 
+                  size="small"
+                  icon={<PlusOutlined />}
                   onClick={() => setShowCommonFields(!showCommonFields)}
-                  className="text-[10px] bg-brand-50 text-brand-600 px-3 py-1.5 rounded-full font-bold hover:bg-brand-100 transition-colors flex items-center gap-1"
                 >
-                  <Plus className="w-3 h-3" /> Quick Add <ChevronDown className="w-3 h-3" />
-                </button>
+                  Quick Add <DownOutlined />
+                </Button>
                 
                 <AnimatePresence>
                   {showCommonFields && (
@@ -329,7 +327,7 @@ export default function TemplateEditorPage() {
             <div className="space-y-3 overflow-y-auto pr-2 flex-grow custom-scrollbar">
               {visualFields.length === 0 ? (
                 <div className="text-center py-12 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-                  <Info className="w-8 h-8 text-slate-300 mx-auto mb-3" />
+                  <InfoCircleOutlined className="w-8 h-8 text-slate-300 mx-auto mb-3" />
                   <p className="text-xs text-slate-400">Add questions that users need to fill out in the contract.</p>
                 </div>
               ) : (
@@ -344,12 +342,12 @@ export default function TemplateEditorPage() {
                       onClick={() => removeField(index)}
                       className="absolute top-2 right-2 p-1 text-slate-300 hover:text-red-500 transition-colors"
                     >
-                      <X className="w-4 h-4" />
+                      <CloseOutlined className="w-4 h-4" />
                     </button>
                     
                     <div className="flex items-center gap-2">
                       <div className="bg-white p-1.5 rounded-lg border border-slate-200">
-                        {field.type === "number" ? <Hash className="w-3 h-3 text-brand-600" /> : field.type === "date" ? <Calendar className="w-3 h-3 text-brand-600" /> : <Type className="w-3 h-3 text-brand-600" />}
+                        {field.type === "number" ? <NumberOutlined className="text-brand-600" /> : field.type === "date" ? <CalendarOutlined className="text-brand-600" /> : <FontSizeOutlined className="text-brand-600" />}
                       </div>
                       <input 
                         type="text"
@@ -374,7 +372,7 @@ export default function TemplateEditorPage() {
                         onClick={() => insertPlaceholder(field.id)}
                         className="text-[10px] font-bold text-brand-600 hover:underline flex items-center gap-1"
                       >
-                        <Plus className="w-3 h-3" /> Add to Doc
+                        <PlusOutlined /> Add to Doc
                       </button>
                     </div>
                   </motion.div>
@@ -384,36 +382,28 @@ export default function TemplateEditorPage() {
           </div>
         </div>
 
-        {/* Right Area: Rich Text Editor or Preview */}
         <div className="lg:col-span-8 flex flex-col h-[calc(100vh-160px)]">
           <div className="bg-white rounded-3xl border border-slate-200 shadow-sm flex flex-col h-full overflow-hidden">
             <div className="px-6 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
               <h3 className="font-bold text-slate-900 flex items-center gap-2">
-                <FileText className="w-5 h-5 text-brand-600" />
+                <FileTextOutlined className="text-brand-600" />
                 {previewMode ? "Contract Preview" : "Contract Content"}
               </h3>
               <div className="flex items-center gap-4">
                 {!previewMode && visualFields.length > 0 && (
-                  <div className="relative group">
-                    <select 
-                      onChange={(e) => {
-                        if (e.target.value) {
-                          insertPlaceholder(e.target.value);
-                          e.target.value = "";
-                        }
-                      }}
-                      className="text-xs font-bold bg-white border border-slate-200 rounded-lg px-3 py-1.5 outline-none focus:border-brand-500 transition-all appearance-none pr-8 cursor-pointer"
-                    >
-                      <option value="">Insert Field...</option>
-                      {visualFields.map(f => (
-                        <option key={f.id} value={f.id}>{f.label}</option>
-                      ))}
-                    </select>
-                    <ChevronDown className="w-3 h-3 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                  </div>
+                  <Select
+                    placeholder="Insert Field..."
+                    style={{ width: 160 }}
+                    onChange={(value) => {
+                      if (value) {
+                        insertPlaceholder(value);
+                      }
+                    }}
+                    options={visualFields.map(f => ({ value: f.id, label: f.label }))}
+                  />
                 )}
                 <div className="flex items-center gap-2 text-[10px] text-slate-400">
-                  <CheckCircle2 className="w-4 h-4 text-teal-500" />
+                  <CheckCircleOutlined className="text-teal-500" />
                   {previewMode ? "Viewing as user" : "Auto-saving draft"}
                 </div>
               </div>
@@ -425,8 +415,8 @@ export default function TemplateEditorPage() {
                   <div className="max-w-2xl mx-auto bg-white p-12 shadow-sm border border-slate-100 rounded-2xl min-h-full prose prose-slate">
                     <div 
                       dangerouslySetInnerHTML={{ 
-                        __html: formData.htmlContent.replace(/\{\{(.*?)\}\}/g, (match, id) => {
-                          const field = visualFields.find(f => f.id === id);
+                        __html: formData.htmlContent.replace(/\{\{(.*?)\}\}/g, (match, fieldId) => {
+                          const field = visualFields.find(f => f.id === fieldId);
                           return `<span class="bg-brand-50 text-brand-700 px-1 rounded border-b border-brand-200 font-bold">${field ? field.label : match}</span>`;
                         }) 
                       }} 
@@ -493,28 +483,5 @@ export default function TemplateEditorPage() {
         }
       `}</style>
     </div>
-  );
-}
-
-function FileText(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-      <polyline points="14 2 14 8 20 8" />
-      <line x1="16" y1="13" x2="8" y2="13" />
-      <line x1="16" y1="17" x2="8" y2="17" />
-      <line x1="10" y1="9" x2="8" y2="9" />
-    </svg>
   );
 }
